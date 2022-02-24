@@ -7,11 +7,15 @@ import org.drasyl.node.DrasylConfig;
 import org.drasyl.node.DrasylException;
 import org.drasyl.node.DrasylNode;
 import org.drasyl.node.event.Event;
+import org.json.simple.JSONObject;
 import org.drasyl.node.event.MessageEvent;
 import org.drasyl.node.event.NodeOfflineEvent;
 import org.drasyl.node.event.NodeOnlineEvent;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 @Getter
 @Setter
@@ -22,7 +26,7 @@ public class Node extends DrasylNode
     private DrasylAddress previousMaster;
     private DrasylAddress nextMaster;
     private NodeRange range;
-    private List<Map<DrasylAddress, Boolean>> localCluster;
+    private Map<DrasylAddress, Boolean> localCluster;
 
     private Timer confirmTimer;
     private Map<String, Message> confirmMessages;
@@ -50,7 +54,21 @@ public class Node extends DrasylNode
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                        System.out.println("Placeholder");
+                JSONObject masterheartbeat = null;
+                JSONObject secondaryheartbeat = null;
+                for(int i = 0; i < localCluster.size(); i++)
+                {
+                    DrasylAddress currentnode = (DrasylAddress) localCluster.keySet().toArray()[i];
+                    boolean isMaster = localCluster.get(currentnode);
+                    if(isMaster && !identity().getAddress().equals(currentnode))
+                    {
+                        send(currentnode, masterheartbeat.toJSONString());
+                    }
+                    else if(!isMaster && !identity().getAddress().equals(currentnode))
+                    {
+                        send(currentnode, secondaryheartbeat.toJSONString());
+                    }
+                }
                 }
 
         }, 0, intervall);
@@ -63,7 +81,7 @@ public class Node extends DrasylNode
 
     public void promote()
     {
-
+        isMaster = true;
     }
 
     public void buildConsent()

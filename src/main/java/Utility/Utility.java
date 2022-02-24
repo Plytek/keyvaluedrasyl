@@ -1,14 +1,21 @@
 package Utility;
 
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.drasyl.identity.DrasylAddress;
+import org.drasyl.node.event.MessageEvent;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import java.nio.charset.StandardCharsets;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
 public class Utility {
     private static final JSONParser PARSER = new JSONParser();
+
+    protected static final ObjectMapper mapper = new ObjectMapper();
 
     public static JSONObject parseJSON(String json) {
         try {
@@ -18,6 +25,63 @@ public class Utility {
         }
         return null;
     }
+
+    public static Message getMessageObject(MessageEvent message)
+    {
+        try {
+            String payload = message.getPayload().toString();
+            JSONObject j = parseJSON(payload);
+            Class javaType = null;
+            String messageType = j.get("messageType").toString();
+            switch (messageType)
+            {
+                case("heartbeat"):
+                {
+                    javaType = Heartbeat.class;
+                    break;
+                }
+                case("clientRequest"):
+                {
+                    javaType = ClientRequest.class;
+                    break;
+                }
+                default:
+                    return null;
+            }
+            DrasylAddress recipient = new DrasylAddress() {
+                @Override
+                public byte[] toByteArray() {
+                    return j.get("recipient").toString().getBytes(StandardCharsets.UTF_8);
+                }
+                @Override
+                public String toString()
+                {
+                    return j.get("recipient").toString();
+                }
+            };;
+            Message msg = new Message(j.get("messageType").toString(), j.get("token").toString(), (MessageContent) mapper.readValue(j.get("content").toString(), javaType), message.getSender().toString(), j.get("recipient").toString());
+            return msg;
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static String getMessageContentJSON(Object content)
+    {
+        try
+        {
+            return mapper.writeValueAsString(content);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            return "{}";
+        }
+    }
+
 
 
     private Utility()
