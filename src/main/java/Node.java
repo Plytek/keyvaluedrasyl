@@ -169,14 +169,8 @@ public class Node extends DrasylNode
         if(event instanceof MessageEvent messageEvent)
         {
             String sender = messageEvent.getSender().toString();
-            Object payload = messageEvent.getPayload();
 
-            Message message = null;
-            try {
-                message = new ObjectMapper().readValue(messageEvent.getPayload().toString(), Message.class);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
+            Message message = Utility.getJSONMessage(messageEvent);
 
             String messageType = message.get_messageType();
 

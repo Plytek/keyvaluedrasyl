@@ -2,9 +2,7 @@ package Utility;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Getter;
-import lombok.Setter;
-import org.drasyl.identity.DrasylAddress;
+import jdk.jshell.execution.Util;
 import org.drasyl.node.event.MessageEvent;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -14,8 +12,6 @@ import org.json.simple.parser.ParseException;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
-@Getter
-@Setter
 public class Utility {
     private static final JSONParser PARSER = new JSONParser();
 
@@ -73,7 +69,7 @@ public class Utility {
         }
     }*/
 
-    public static String getMessageContentJSON(Object content)
+    public static String getMessageContentJSON(Message content)
     {
         try
         {
@@ -83,6 +79,30 @@ public class Utility {
         {
             e.printStackTrace();
             return "{}";
+        }
+    }
+
+    public static Message getJSONMessage(MessageEvent e)
+    {
+        try {
+            String payload = e.getPayload().toString();
+            JSONObject j = parseJSON(payload);
+            Class javaType = null;
+            switch (j.get("messageType").toString()) {
+                case "clientRequest": {
+                    javaType = ClientRequest.class;
+                    break;
+                }
+                case "Heartbeat": {
+                    javaType = Heartbeat.class;
+                }
+            }
+            return (Message) mapper.readValue(payload.toString(), javaType);
+        }
+        catch (Exception x)
+        {
+            x.printStackTrace();
+            return null;
         }
     }
 
