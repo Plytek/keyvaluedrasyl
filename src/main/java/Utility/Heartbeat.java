@@ -1,4 +1,12 @@
 package Utility;
 
-public class Heartbeat extends Message{
+import org.drasyl.identity.DrasylAddress;
+
+public class Heartbeat extends MessageContent{
+
+
+
+    public String getJSON() {
+        return null;
+    }
 }
