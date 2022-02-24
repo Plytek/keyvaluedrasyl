@@ -2,6 +2,8 @@ package Utility;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
+import lombok.Setter;
 import org.drasyl.identity.DrasylAddress;
 import org.drasyl.node.event.MessageEvent;
 import org.json.simple.JSONObject;
@@ -12,6 +14,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
+@Getter
+@Setter
 public class Utility {
     private static final JSONParser PARSER = new JSONParser();
 

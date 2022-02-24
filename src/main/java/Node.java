@@ -1,6 +1,8 @@
 import Utility.Message;
 import Utility.NodeRange;
 import Utility.Utility;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.Setter;
 import org.drasyl.identity.DrasylAddress;
@@ -111,7 +113,7 @@ public class Node extends DrasylNode
                 receiver
         );
 
-        this.send(receiver, confirmMessage.toString());
+        this.send(receiver, Utility.getMessageContentJSON(confirmMessage));
     }
 
     public void sendConfirmedMessage(Message message)
@@ -125,7 +127,7 @@ public class Node extends DrasylNode
             startMessageConfirmer(1000);
         }
 
-        this.send(message.get_recipient(), message.toString());
+        this.send(message.get_recipient(), Utility.getMessageContentJSON(message));
     }
 
     public void checkTimeoutMessage(String token)
@@ -146,7 +148,7 @@ public class Node extends DrasylNode
                 // erneut zustellen
                 message.tickCounter();
                 message.set_time(currentTime);
-                this.send(message.get_recipient(), message.toString());
+                this.send(message.get_recipient(), Utility.getMessageContentJSON(message));
             }
         }
     }
@@ -172,7 +174,13 @@ public class Node extends DrasylNode
         {
             String sender = messageEvent.getSender().toString();
             Object payload = messageEvent.getPayload();
-            Message message = Utility.getMessageObject(messageEvent);
+
+            Message message = null;
+            try {
+                message = new ObjectMapper().readValue(messageEvent.getPayload().toString(), Message.class);
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
 
             String messageType = message.get_messageType();
 
