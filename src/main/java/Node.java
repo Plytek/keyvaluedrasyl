@@ -74,7 +74,7 @@ public class Node extends DrasylNode
 
     public void promote()
     {
-
+        isMaster = true;
     }
 
     public void buildConsent()

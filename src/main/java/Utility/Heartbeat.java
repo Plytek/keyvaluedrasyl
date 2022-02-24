@@ -1,12 +1,20 @@
 package Utility;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.drasyl.identity.DrasylAddress;
 
-public class Heartbeat extends MessageContent{
+@Getter
+@Setter
+public class Heartbeat extends MessageContent
+{
+    private String heartbeat;
+    private long timestamp;
 
-
-
-    public String getJSON() {
-        return null;
+    public Heartbeat(String heartbeat) {
+        this.heartbeat = heartbeat;
+        timestamp = System.currentTimeMillis();
     }
+
+
 }

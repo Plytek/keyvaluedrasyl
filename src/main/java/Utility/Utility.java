@@ -59,7 +59,7 @@ public class Utility {
                     return j.get("recipient").toString();
                 }
             };;
-            Message msg = new Message(j.get("messageType").toString(), Long.parseLong(j.get("time").toString()), j.get("token").toString(), (MessageContent) mapper.readValue(j.get("content").toString(), javaType), message.getSender().toString(), j.get("recipient").toString());
+            Message msg = new Message(j.get("messageType").toString(), j.get("token").toString(), (MessageContent) mapper.readValue(j.get("content").toString(), javaType), message.getSender().toString(), j.get("recipient").toString());
             return msg;
         }
         catch (Exception e)
