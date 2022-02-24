@@ -35,4 +35,8 @@ public class Message
         _counter += 1;
     }
 
+    public void updateTimestamp() {
+        _time = System.currentTimeMillis();
+    }
+
 }

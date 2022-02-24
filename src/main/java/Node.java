@@ -1,6 +1,5 @@
-import Utility.Message;
-import Utility.NodeRange;
-import Utility.Tools;
+import Utility.*;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import lombok.Getter;
 import lombok.Setter;
 import org.drasyl.identity.DrasylAddress;
@@ -8,7 +7,6 @@ import org.drasyl.node.DrasylConfig;
 import org.drasyl.node.DrasylException;
 import org.drasyl.node.DrasylNode;
 import org.drasyl.node.event.Event;
-import org.json.simple.JSONObject;
 import org.drasyl.node.event.MessageEvent;
 import org.drasyl.node.event.NodeOfflineEvent;
 import org.drasyl.node.event.NodeOnlineEvent;
@@ -27,7 +25,9 @@ public class Node extends DrasylNode
     private Map<DrasylAddress, Boolean> localCluster;
 
     private Timer confirmTimer;
-    private Map<String, Message> confirmMessages = new HashMap<String, Message>();
+    private Map<String, Message> confirmMessages = new HashMap<>();
+
+    private Map<Integer, Map<String,String>> datastorage;
 
     protected Node(DrasylConfig config) throws DrasylException {
         super(config);
@@ -42,12 +42,21 @@ public class Node extends DrasylNode
 
     }
 
-    public void anfrageVerteilen()
+    public void anfrageVerteilen(ClientRequest clientRequest)
     {
-
+        //Muss eventuell noch modifziert werden wenn zB next master Range 0-X hat nach 6666-10000
+        int verteilerhash = clientRequest.hashCode();
+        if(verteilerhash < range.getLow())
+        {
+            send(previousMaster, Tools.getMessageAsJSONString(clientRequest));
+        }
+        else if(verteilerhash > range.getHigh())
+        {
+            send(nextMaster, Tools.getMessageAsJSONString(clientRequest));
+        }
     }
 
-    String getAddress() {
+    public String getAddress() {
         return this.identity().getAddress().toString();
     }
 
@@ -56,20 +65,30 @@ public class Node extends DrasylNode
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                JSONObject masterheartbeat = null;
-                JSONObject secondaryheartbeat = null;
+                Heartbeat heartbeat = new Heartbeat();
                 for(int i = 0; i < localCluster.size(); i++)
                 {
                     DrasylAddress currentnode = (DrasylAddress) localCluster.keySet().toArray()[i];
                     boolean isMaster = localCluster.get(currentnode);
                     if(isMaster && !identity().getAddress().equals(currentnode))
                     {
-                        send(currentnode, masterheartbeat.toJSONString());
+                        heartbeat.setHeartbeat("masterheartbeat");
+                        heartbeat.updateTimestamp();
+                        send(currentnode, Tools.getMessageAsJSONString(heartbeat));
                     }
                     else if(!isMaster && !identity().getAddress().equals(currentnode))
                     {
-                        send(currentnode, secondaryheartbeat.toJSONString());
+                        heartbeat.setHeartbeat("secondaryheartbeat");
+                        heartbeat.updateTimestamp();
+                        send(currentnode, Tools.getMessageAsJSONString(heartbeat));
                     }
+                }
+                if(isMaster)
+                {
+                    heartbeat.setHeartbeat("masterheartbeat");
+                    heartbeat.updateTimestamp();
+                    send(previousMaster, Tools.getMessageAsJSONString(heartbeat));
+                    send(nextMaster, Tools.getMessageAsJSONString(heartbeat));
                 }
                 }
 
@@ -91,9 +110,9 @@ public class Node extends DrasylNode
 
     }
 
-    public void returnRequest()
+    public void returnRequest(ClientResponse clientResponse)
     {
-
+        send(clientResponse.get_recipient(), Tools.getMessageAsJSONString(clientResponse));
     }
 
     // nicht mit retrys bei confirmation, gehe von erfolg aus
@@ -107,7 +126,7 @@ public class Node extends DrasylNode
         confirmMessage.set_token(token);
 
 
-        this.send(receiver, Tools.getMessageJSON(confirmMessage));
+        this.send(receiver, Tools.getMessageAsJSONString(confirmMessage));
     }
 
     public void sendConfirmedMessage(Message message)
@@ -121,7 +140,7 @@ public class Node extends DrasylNode
             startMessageConfirmer(1000);
         }
 
-        this.send(message.get_recipient(), Tools.getMessageJSON(message));
+        this.send(message.get_recipient(), Tools.getMessageAsJSONString(message));
     }
 
     public void checkTimeoutMessage(String token)
@@ -141,7 +160,7 @@ public class Node extends DrasylNode
                 // erneut zustellen
                 message.tickCounter();
                 message.set_time(currentTime);
-                this.send(message.get_recipient(), Tools.getMessageJSON(message));
+                this.send(message.get_recipient(), Tools.getMessageAsJSONString(message));
             }
         }
     }
@@ -167,7 +186,7 @@ public class Node extends DrasylNode
         {
             String sender = messageEvent.getSender().toString();
 
-            Message message = Tools.getJSONMessage(messageEvent);
+            Message message = Tools.getMessageFromEvent(messageEvent);
 
             String messageType = message.get_messageType();
 
@@ -184,11 +203,11 @@ public class Node extends DrasylNode
 
             switch(messageType)
             {
-                case "Heartbeat":
-                    System.out.println("Heartbeat");
+                case "heartbeat":
+                    System.out.println("heartbeat");
                     break;
-                case "Confirmation":
-                    System.out.println("Confirmation");
+                case "confirmation":
+                    System.out.println("confirmation");
                     break;
                 default:
                     System.out.println("unknown message-type:" + messageType);

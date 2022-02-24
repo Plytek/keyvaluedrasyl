@@ -33,7 +33,7 @@ public class ClientNode extends DrasylNode
         ClientRequest request = new ClientRequest("create", key, value);
         request.set_recipient(address);
         request.set_sender(identity().getAddress().toString());
-        send(address, Tools.getMessageJSON(request));
+        send(address, Tools.getMessageAsJSONString(request));
     }
 
     public void delete(String key)
@@ -41,7 +41,7 @@ public class ClientNode extends DrasylNode
         Random rand = new Random();
         String address = mainnodes.get(rand.nextInt(mainnodes.size()));
         ClientRequest request = new ClientRequest("delete", key);
-        send(address, Tools.getMessageJSON(request));
+        send(address, Tools.getMessageAsJSONString(request));
     }
 
     public void update(String key, String value)
@@ -49,7 +49,7 @@ public class ClientNode extends DrasylNode
         Random rand = new Random();
         String address = mainnodes.get(rand.nextInt(mainnodes.size()));
         ClientRequest request = new ClientRequest("update", key, value);
-        send(address, Tools.getMessageJSON(request));
+        send(address, Tools.getMessageAsJSONString(request));
     }
 
     public void read(String key)
@@ -57,7 +57,7 @@ public class ClientNode extends DrasylNode
         Random rand = new Random();
         String address = mainnodes.get(rand.nextInt(mainnodes.size()));
         ClientRequest request = new ClientRequest("read", key);
-        send(address, Tools.getMessageJSON(request));
+        send(address, Tools.getMessageAsJSONString(request));
     }
 
     @Override
@@ -65,7 +65,7 @@ public class ClientNode extends DrasylNode
         System.out.println("Event received: " + event);
         if(event instanceof MessageEvent e)
         {
-            ClientResponse message = (ClientResponse) Tools.getJSONMessage(e);
+            ClientResponse message = (ClientResponse) Tools.getMessageFromEvent(e);
             switch (message.get_messageType())
             {
                 case "clientresponse":

@@ -9,12 +9,15 @@ import org.drasyl.identity.DrasylAddress;
 public class Heartbeat extends Message
 {
     private String heartbeat;
-    private long timestamp;
 
     public Heartbeat(String heartbeat) {
+        super();
         this.heartbeat = heartbeat;
-        timestamp = System.currentTimeMillis();
+        this._messageType = "heartbeat";
     }
 
-
+    public Heartbeat() {
+        super();
+        this._messageType = "heartbeat";
+    }
 }

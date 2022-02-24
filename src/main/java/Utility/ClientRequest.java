@@ -3,6 +3,8 @@ package Utility;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Objects;
+
 @Getter
 @Setter
 public class ClientRequest extends Message{
@@ -23,5 +25,18 @@ public class ClientRequest extends Message{
         this.requestType = requestType;
         this.affectedKey = affectedKey;
         this._messageType = "clientrequest";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ClientRequest that = (ClientRequest) o;
+        return Objects.equals(requestType, that.requestType) && affectedKey.equals(that.affectedKey) && Objects.equals(value, that.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(affectedKey)*31%9950;
     }
 }

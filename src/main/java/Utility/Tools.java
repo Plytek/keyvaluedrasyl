@@ -2,7 +2,6 @@ package Utility;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jdk.jshell.execution.Util;
 import org.drasyl.node.event.MessageEvent;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -14,7 +13,6 @@ import java.util.zip.Checksum;
 
 public class Tools {
     private static final JSONParser PARSER = new JSONParser();
-
     protected static final ObjectMapper mapper = new ObjectMapper();
 
     public static JSONObject parseJSON(String json) {
@@ -69,7 +67,7 @@ public class Tools {
         }
     }*/
 
-    public static String getMessageJSON(Message content)
+    public static String getMessageAsJSONString(Message content)
     {
         try
         {
@@ -82,7 +80,7 @@ public class Tools {
         }
     }
 
-    public static Message getJSONMessage(MessageEvent e)
+    public static Message getMessageFromEvent(MessageEvent e)
     {
         try {
             String payload = e.getPayload().toString();

@@ -54,7 +54,7 @@ public class KeyValueGUI {
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                valueLabel.setText(clientNode.getResponsevalue());
+                outputFeld.setText(clientNode.getResponsevalue());
             }
         },0, 1000);
 

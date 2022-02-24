@@ -11,10 +11,12 @@ public class ClientResponse extends Message
 
     public ClientResponse(String response) {
         this.response = response;
+        this._messageType = "clientresponse";
     }
 
     public ClientResponse(String messageType, String sender, String recipient, String response) {
         super(messageType, sender, recipient);
         this.response = response;
+        this._messageType = "clientresponse";
     }
 }

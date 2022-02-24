@@ -82,12 +82,12 @@
           <text value="Bitte hier den Schlüssel eingeben:"/>
         </properties>
       </component>
-      <component id="8cd4c" class="javax.swing.JLabel" binding="valueLabel">
+      <component id="c3a9a" class="javax.swing.JLabel" binding="valueLabel">
         <constraints>
           <grid row="2" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="Bitter hier den Wert eingeben:"/>
+          <text value="Bitte hier den Wert eingeben:"/>
         </properties>
       </component>
     </children>
