@@ -15,38 +15,18 @@ public class Message
     private long _time;
     private MessageContent _content;
     private String _token;
-    private DrasylAddress _sender;
-    private DrasylAddress _recipient;
+    private String _sender;
+    private String _recipient;
     private int _counter;
 
 
-    public Message(String messageType, long time, String token, MessageContent content, DrasylAddress sender, String recipient)
+    public Message(String messageType, long time, String token, MessageContent content, String sender, String recipient)
     {
         _token = token;
         _messageType = messageType;
         _time = time;
         _content = content;
         _sender = sender;
-        _recipient = new DrasylAddress() {
-            @Override
-            public byte[] toByteArray() {
-                return recipient.getBytes(StandardCharsets.UTF_8);
-            }
-        };
-    }
-
-    public Message(String messageType, long time, MessageContent content, String sender, DrasylAddress recipient)
-    {
-        _token = UUID.randomUUID().toString();
-        _messageType = messageType;
-        _time = time;
-        _content = content;
-        _sender = new DrasylAddress() {
-            @Override
-            public byte[] toByteArray() {
-                return sender.getBytes(StandardCharsets.UTF_8);
-            }
-        };;
         _recipient = recipient;
     }
 
@@ -62,6 +42,7 @@ public class Message
 
     public String getJSON()
     {
-        return null;
+        String str = "{\"messageType:\"" + _messageType + "\", \"time\":\"" + _time + "\", \"sender\":\"" + _sender.toString() + "\", \"recipient\":\"" + _recipient.toString() + "\", \"content\":" + Utility.getMessageContentJSON(_content) + "}";
+        return str;
     }
 }
