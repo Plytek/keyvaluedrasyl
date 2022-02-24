@@ -6,7 +6,7 @@ import org.drasyl.identity.DrasylAddress;
 
 @Getter
 @Setter
-public class Heartbeat extends MessageContent
+public class Heartbeat extends Message
 {
     private String heartbeat;
     private long timestamp;

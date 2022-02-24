@@ -1,14 +1,12 @@
 package Utility;
 
-import com.fasterxml.jackson.databind.JavaType;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.drasyl.identity.DrasylAddress;
-import org.drasyl.node.event.MessageEvent;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import java.nio.charset.StandardCharsets;
+
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
@@ -26,7 +24,7 @@ public class Utility {
         return null;
     }
 
-    public static Message getMessageObject(MessageEvent message)
+    /*public static Message getMessageObject(MessageEvent message)
     {
         try {
             String payload = message.getPayload().toString();
@@ -67,7 +65,7 @@ public class Utility {
             e.printStackTrace();
             return null;
         }
-    }
+    }*/
 
     public static String getMessageContentJSON(Object content)
     {

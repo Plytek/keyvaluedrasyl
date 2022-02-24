@@ -2,31 +2,30 @@ package Utility;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.drasyl.identity.DrasylAddress;
-import org.json.simple.JSONObject;
-
-import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 @Getter
 @Setter
 public class Message
 {
-    private String _messageType;
-    private long _time;
-    private MessageContent _content;
-    private String _token;
-    private String _sender;
-    private String _recipient;
-    private int _counter;
+    protected String _messageType;
+    protected long _time;
+    protected final String _token;
+    protected String _sender;
+    protected String _recipient;
+    protected int _counter;
 
 
-    public Message(String messageType, String token, MessageContent content, String sender, String recipient)
+    public Message() {
+        _time = System.currentTimeMillis();
+        _token = UUID.randomUUID().toString();
+    }
+
+    public Message(String messageType, String sender, String recipient)
     {
-        _token = token;
+        _token = UUID.randomUUID().toString();
         _messageType = messageType;
         _time = System.currentTimeMillis();
-        _content = content;
         _sender = sender;
         _recipient = recipient;
     }
@@ -35,6 +34,5 @@ public class Message
     {
         _counter += 1;
     }
-
 
 }

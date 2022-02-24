@@ -12,7 +12,7 @@ class UtilityTest {
     void getMessageContentJSON() {
         Heartbeat heartbeat = new Heartbeat("masterheartbeat");
         System.out.println(Utility.getMessageContentJSON(heartbeat));
-        Message message = new Message("heartbeat", "token", heartbeat, "sender", "empfänger");
-        System.out.println(Utility.getMessageContentJSON(message));
+        //Message message = new Message();
+        //System.out.println(Utility.getMessageContentJSON(message));
     }
 }
