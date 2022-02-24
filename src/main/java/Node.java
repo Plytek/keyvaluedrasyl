@@ -6,6 +6,7 @@ import org.drasyl.node.DrasylConfig;
 import org.drasyl.node.DrasylException;
 import org.drasyl.node.DrasylNode;
 import org.drasyl.node.event.Event;
+import org.json.simple.JSONObject;
 
 import java.util.List;
 import java.util.Map;
@@ -21,7 +22,7 @@ public class Node extends DrasylNode
     private DrasylAddress previousMaster;
     private DrasylAddress nextMaster;
     private NodeRange range;
-    private List<Map<DrasylAddress, Boolean>> localCluster;
+    private Map<DrasylAddress, Boolean> localCluster;
 
     protected Node(DrasylConfig config) throws DrasylException {
         super(config);
@@ -46,7 +47,21 @@ public class Node extends DrasylNode
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                        System.out.println("Placeholder");
+                JSONObject masterheartbeat = null;
+                JSONObject secondaryheartbeat = null;
+                for(int i = 0; i < localCluster.size(); i++)
+                {
+                    DrasylAddress currentnode = (DrasylAddress) localCluster.keySet().toArray()[i];
+                    boolean isMaster = localCluster.get(currentnode);
+                    if(isMaster && !identity().getAddress().equals(currentnode))
+                    {
+                        send(currentnode, masterheartbeat.toJSONString());
+                    }
+                    else if(!isMaster && !identity().getAddress().equals(currentnode))
+                    {
+                        send(currentnode, secondaryheartbeat.toJSONString());
+                    }
+                }
                 }
 
         }, 0, intervall);
