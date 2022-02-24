@@ -12,7 +12,7 @@ import org.json.simple.parser.ParseException;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
-public class Utility {
+public class Tools {
     private static final JSONParser PARSER = new JSONParser();
 
     protected static final ObjectMapper mapper = new ObjectMapper();
@@ -69,7 +69,7 @@ public class Utility {
         }
     }*/
 
-    public static String getMessageContentJSON(Message content)
+    public static String getMessageJSON(Message content)
     {
         try
         {
@@ -95,6 +95,11 @@ public class Utility {
                 }
                 case "Heartbeat": {
                     javaType = Heartbeat.class;
+                    break;
+                }
+                case "clientresponse":
+                {
+                    javaType = ClientResponse.class;
                 }
             }
             return (Message) mapper.readValue(payload.toString(), javaType);
@@ -108,7 +113,7 @@ public class Utility {
 
 
 
-    private Utility()
+    private Tools()
     {
     }
 

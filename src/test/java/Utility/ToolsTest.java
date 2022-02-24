@@ -2,16 +2,12 @@ package Utility;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.*;
-
-class UtilityTest {
+class ToolsTest {
 
     @Test
     void getMessageContentJSON() {
         Heartbeat heartbeat = new Heartbeat("masterheartbeat");
-        System.out.println(Utility.getMessageContentJSON(heartbeat));
+        System.out.println(Tools.getMessageJSON(heartbeat));
         //Message message = new Message();
         //System.out.println(Utility.getMessageContentJSON(message));
     }

@@ -1,11 +1,12 @@
 import Utility.ClientRequest;
-import Utility.Utility;
+import Utility.Tools;
+import Utility.ClientResponse;
 import lombok.Getter;
 import lombok.Setter;
-import org.drasyl.identity.DrasylAddress;
 import org.drasyl.node.DrasylException;
 import org.drasyl.node.DrasylNode;
 import org.drasyl.node.event.Event;
+import org.drasyl.node.event.MessageEvent;
 
 import java.util.List;
 import java.util.Random;
@@ -15,6 +16,7 @@ import java.util.Random;
 public class ClientNode extends DrasylNode
 {
     List<String> mainnodes;
+    String responsevalue = "";
 
     protected ClientNode() throws DrasylException {
     }
@@ -31,7 +33,7 @@ public class ClientNode extends DrasylNode
         ClientRequest request = new ClientRequest("create", key, value);
         request.set_recipient(address);
         request.set_sender(identity().getAddress().toString());
-        send(address, Utility.getMessageContentJSON(request));
+        send(address, Tools.getMessageJSON(request));
     }
 
     public void delete(String key)
@@ -39,7 +41,7 @@ public class ClientNode extends DrasylNode
         Random rand = new Random();
         String address = mainnodes.get(rand.nextInt(mainnodes.size()));
         ClientRequest request = new ClientRequest("delete", key);
-        send(address, Utility.getMessageContentJSON(request));
+        send(address, Tools.getMessageJSON(request));
     }
 
     public void update(String key, String value)
@@ -47,7 +49,7 @@ public class ClientNode extends DrasylNode
         Random rand = new Random();
         String address = mainnodes.get(rand.nextInt(mainnodes.size()));
         ClientRequest request = new ClientRequest("update", key, value);
-        send(address, Utility.getMessageContentJSON(request));
+        send(address, Tools.getMessageJSON(request));
     }
 
     public void read(String key)
@@ -55,11 +57,28 @@ public class ClientNode extends DrasylNode
         Random rand = new Random();
         String address = mainnodes.get(rand.nextInt(mainnodes.size()));
         ClientRequest request = new ClientRequest("read", key);
-        send(address, Utility.getMessageContentJSON(request));
+        send(address, Tools.getMessageJSON(request));
     }
 
     @Override
     public void onEvent(Event event) {
         System.out.println("Event received: " + event);
+        if(event instanceof MessageEvent e)
+        {
+            ClientResponse message = (ClientResponse) Tools.getJSONMessage(e);
+            switch (message.get_messageType())
+            {
+                case "clientresponse":
+                {
+                    responsevalue = message.getResponse();
+                    break;
+                }
+                default:
+                {
+                    System.out.println("Hier gibts nix zu sehen");
+                }
+            }
+
+        }
     }
 }

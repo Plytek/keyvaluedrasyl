@@ -2,9 +2,6 @@ package Utility;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.drasyl.identity.DrasylAddress;
-
-import static Utility.Utility.getMessageContentJSON;
 
 @Getter
 @Setter

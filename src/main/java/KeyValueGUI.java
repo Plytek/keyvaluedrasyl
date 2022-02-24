@@ -4,6 +4,8 @@ import lombok.Setter;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Timer;
+import java.util.TimerTask;
 
 @Getter
 @Setter
@@ -20,6 +22,7 @@ public class KeyValueGUI {
     private JTextField valueField;
     private JLabel schluesselLabel;
     private JLabel valueLabel;
+    java.util.Timer timer;
 
     public KeyValueGUI() {
         createButton.addActionListener(new ActionListener() {
@@ -46,5 +49,14 @@ public class KeyValueGUI {
                 clientNode.delete(keyField.getText());
             }
         });
+
+        timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                valueLabel.setText(clientNode.getResponsevalue());
+            }
+        },0, 1000);
+
     }
 }

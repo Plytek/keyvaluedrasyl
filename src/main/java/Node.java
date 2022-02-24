@@ -1,8 +1,6 @@
 import Utility.Message;
 import Utility.NodeRange;
-import Utility.Utility;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import Utility.Tools;
 import lombok.Getter;
 import lombok.Setter;
 import org.drasyl.identity.DrasylAddress;
@@ -16,7 +14,6 @@ import org.drasyl.node.event.NodeOfflineEvent;
 import org.drasyl.node.event.NodeOnlineEvent;
 
 import java.util.*;
-import Utility.Heartbeat;
 
 @Getter
 @Setter
@@ -110,7 +107,7 @@ public class Node extends DrasylNode
         confirmMessage.set_token(token);
 
 
-        this.send(receiver, Utility.getMessageContentJSON(confirmMessage));
+        this.send(receiver, Tools.getMessageJSON(confirmMessage));
     }
 
     public void sendConfirmedMessage(Message message)
@@ -124,7 +121,7 @@ public class Node extends DrasylNode
             startMessageConfirmer(1000);
         }
 
-        this.send(message.get_recipient(), Utility.getMessageContentJSON(message));
+        this.send(message.get_recipient(), Tools.getMessageJSON(message));
     }
 
     public void checkTimeoutMessage(String token)
@@ -144,7 +141,7 @@ public class Node extends DrasylNode
                 // erneut zustellen
                 message.tickCounter();
                 message.set_time(currentTime);
-                this.send(message.get_recipient(), Utility.getMessageContentJSON(message));
+                this.send(message.get_recipient(), Tools.getMessageJSON(message));
             }
         }
     }
@@ -170,7 +167,7 @@ public class Node extends DrasylNode
         {
             String sender = messageEvent.getSender().toString();
 
-            Message message = Utility.getJSONMessage(messageEvent);
+            Message message = Tools.getJSONMessage(messageEvent);
 
             String messageType = message.get_messageType();
 
