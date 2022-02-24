@@ -1,5 +1,6 @@
 import Utility.Message;
 import Utility.NodeRange;
+import Utility.Utility;
 import lombok.Getter;
 import lombok.Setter;
 import org.drasyl.identity.DrasylAddress;
@@ -12,10 +13,8 @@ import org.drasyl.node.event.MessageEvent;
 import org.drasyl.node.event.NodeOfflineEvent;
 import org.drasyl.node.event.NodeOnlineEvent;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
+import Utility.Heartbeat;
 
 @Getter
 @Setter
@@ -29,7 +28,7 @@ public class Node extends DrasylNode
     private Map<DrasylAddress, Boolean> localCluster;
 
     private Timer confirmTimer;
-    private Map<String, Message> confirmMessages;
+    private Map<String, Message> confirmMessages = new HashMap<String, Message>();
 
     protected Node(DrasylConfig config) throws DrasylException {
         super(config);
@@ -47,6 +46,10 @@ public class Node extends DrasylNode
     public void anfrageVerteilen()
     {
 
+    }
+
+    String getAddress() {
+        return this.identity().getAddress().toString();
     }
 
     public void sendHeartbeat(long intervall) {
@@ -97,7 +100,16 @@ public class Node extends DrasylNode
     // nicht mit retrys bei confirmation, gehe von erfolg aus
     // falls confirmation nicht ankommt, so kommt nochmal eine Nachricht
     public void sendConfirmation(String token, String receiver) {
-        Message confirmMessage = new Message(token, "Communication");
+        //Message confirmMessage = new Message(token, "Communication");
+        Message confirmMessage = new Message(
+                "heartbeat",
+                token,
+                new Heartbeat(
+                        "heartbeat-confirmation"
+                ),
+                this.identity.toString(),
+                receiver
+        );
 
         this.send(receiver, confirmMessage.toString());
     }
@@ -105,15 +117,15 @@ public class Node extends DrasylNode
     public void sendConfirmedMessage(Message message)
     {
         long currentTime = System.currentTimeMillis();
-        message.setTime(currentTime);
-        confirmMessages.put(message.getToken(), message);
+        message.set_time(currentTime);
+        confirmMessages.put(message.get_token(), message);
         if(confirmTimer == null)
         {
             // start MessageConfirmer, falls noch nicht aktiv
             startMessageConfirmer(1000);
         }
 
-        this.send(message.getReceiver(), message.toString());
+        this.send(message.get_recipient(), message.toString());
     }
 
     public void checkTimeoutMessage(String token)
@@ -122,19 +134,19 @@ public class Node extends DrasylNode
         Message message = confirmMessages.get(token);
 
         // nur handeln falls timeout  nach 5 Sekunden
-        if(currentTime - message.getTime() > 5000)
+        if(currentTime - message.get_time() > 5000)
         {
             // maximal 3 Timeouts
-            if(message.getCounter() >= 3){
+            if(message.get_counter() >= 3){
                 System.out.println("TODO: Dreimal Timeout bei Message Delivery!");
             }
             else
             {
                 // counter & time aktualisieren
                 // erneut zustellen
-                message.increaseCounter();
-                message.setTime(currentTime);
-                this.send(message.getReceiver(), message.toString());
+                message.tickCounter();
+                message.set_time(currentTime);
+                this.send(message.get_recipient(), message.toString());
             }
         }
     }
@@ -160,11 +172,11 @@ public class Node extends DrasylNode
         {
             String sender = messageEvent.getSender().toString();
             Object payload = messageEvent.getPayload();
+            Message message = Utility.getMessageObject(messageEvent);
 
-            Message message = Message.fromPayload(payload);
-            String messageType = message.getType();
+            String messageType = message.get_messageType();
 
-            String token = Message.getToken();
+            String token = message.get_token();
             if(confirmMessages.containsKey(token))
             {
                 // falls confirmation auf gesendete Message, so entferne aus confirm-Queue
