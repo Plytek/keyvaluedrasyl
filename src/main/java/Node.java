@@ -102,16 +102,13 @@ public class Node extends DrasylNode
     // nicht mit retrys bei confirmation, gehe von erfolg aus
     // falls confirmation nicht ankommt, so kommt nochmal eine Nachricht
     public void sendConfirmation(String token, String receiver) {
-        //Message confirmMessage = new Message(token, "Communication");
         Message confirmMessage = new Message(
-                "heartbeat",
-                token,
-                new Heartbeat(
-                        "heartbeat-confirmation"
-                ),
+                "confirm",
                 this.identity.toString(),
                 receiver
         );
+        confirmMessage.set_token(token);
+
 
         this.send(receiver, Utility.getMessageContentJSON(confirmMessage));
     }
@@ -139,11 +136,10 @@ public class Node extends DrasylNode
         if(currentTime - message.get_time() > 5000)
         {
             // maximal 3 Timeouts
-            if(message.get_counter() >= 3){
+            if(message.get_counter() >= 3) {
                 System.out.println("TODO: Dreimal Timeout bei Message Delivery!");
-            }
-            else
-            {
+            } else {
+                System.out.println("Timeout Nummer " + (message.get_counter()+1));
                 // counter & time aktualisieren
                 // erneut zustellen
                 message.tickCounter();

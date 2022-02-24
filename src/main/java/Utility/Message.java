@@ -10,7 +10,7 @@ public class Message
 {
     protected String _messageType;
     protected long _time;
-    protected final String _token;
+    protected String _token;
     protected String _sender;
     protected String _recipient;
     protected int _counter;
