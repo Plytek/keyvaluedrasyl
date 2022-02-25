@@ -12,6 +12,7 @@ public class ClientRequest extends Message{
     private String requestType;
     private String affectedKey;
     private String value;
+    private String bemerkung;
 
     public ClientRequest() {
     }

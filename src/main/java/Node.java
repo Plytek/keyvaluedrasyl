@@ -123,6 +123,7 @@ public class Node extends DrasylNode
                     String adresse = (String) localCluster.keySet().toArray()[i];
                     if(!localCluster.get(adresse))
                     {
+                        clientRequest.setBemerkung("An secondary gesendet");
                         send(adresse, Tools.getMessageAsJSONString(clientRequest));
                     }
                 }
@@ -148,10 +149,12 @@ public class Node extends DrasylNode
         }
         else if(requesthash > range.getHigh())
         {
+            clientRequest.setBemerkung("An next gesendet");
             send(nextMaster, Tools.getMessageAsJSONString(clientRequest));
         }
         else
         {
+            clientRequest.setBemerkung("An prev gesendet");
             send(previousMaster, Tools.getMessageAsJSONString(clientRequest));
         }
         System.out.println("Hier1");
@@ -290,6 +293,7 @@ public class Node extends DrasylNode
                     System.out.println(localCluster.toString() + "\n" + isMaster + "\n" + previousMaster + "\n" + nextMaster + "\n" + range.toString() + "\n" + settings.getClusterid());
                     break;
                 case "clientrequest":
+                    System.out.print("Clientrequest: " + event);
                     handleClientRequest((ClientRequest) message);
 
                 default:

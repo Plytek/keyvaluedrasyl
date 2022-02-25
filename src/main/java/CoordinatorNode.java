@@ -18,7 +18,7 @@ import java.util.*;
 public class CoordinatorNode extends DrasylNode {
     List<String> registerednodes = new ArrayList<>();
     List<String> mainnodes = new ArrayList<>();
-    int maxnodes = 6;
+    int maxnodes = 9;
     //int range = Integer.MAX_VALUE-1;
     int range = 10000;
     int clustersize = 3;
