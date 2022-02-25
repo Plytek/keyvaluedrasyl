@@ -11,11 +11,10 @@ public class KeyvalueStoreApplication {
     public static void main(String[] args){
 
         try {
-            CoordinatorNode coordinatorNode = new CoordinatorNode();
+
             DrasylConfig config;
             config = DrasylConfig.newBuilder().identityPath(Path.of("second.identity")).build();
-            Node node1 = new Node(config);
-            node1.setCoordinator("2daf0e96db01cfbd8575ea645877158b03075bcbd7517166381bdab3019d1f72");
+            CoordinatorNode coordinatorNode = new CoordinatorNode(config);
             config = DrasylConfig.newBuilder().identityPath(Path.of("third.identity")).build();
             Node node2 = new Node(config);
             node2.setCoordinator("2daf0e96db01cfbd8575ea645877158b03075bcbd7517166381bdab3019d1f72");
@@ -47,7 +46,7 @@ public class KeyvalueStoreApplication {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            node1.start();
+/*            node1.start();
             try {
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
@@ -64,8 +63,8 @@ public class KeyvalueStoreApplication {
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
-            }
-            node4.start();
+            }*/
+           /* node4.start();
             try {
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
@@ -95,8 +94,15 @@ public class KeyvalueStoreApplication {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            node9.start();
-
+            node9.start();*/
+            ClientNode clientNode = null;
+            try {
+                clientNode = new ClientNode();
+            } catch (DrasylException e) {
+                e.printStackTrace();
+            }
+            clientNode.setMainnodes(coordinatorNode.getMainnodes());
+            testUI(clientNode);
 
 
         } catch (DrasylException e) {
@@ -105,14 +111,9 @@ public class KeyvalueStoreApplication {
     }
 
 
-    public static void testUI()
+    public static void testUI(ClientNode clientNode)
     {
-        ClientNode clientNode = null;
-        try {
-            clientNode = new ClientNode();
-        } catch (DrasylException e) {
-            e.printStackTrace();
-        }
+
         clientNode.start();
 
         try {
