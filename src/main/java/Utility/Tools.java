@@ -16,7 +16,7 @@ public class Tools {
     protected static final ObjectMapper mapper = new ObjectMapper();
 
     /**
-     *
+     * JSON-String parsen
      * @param json ein gültiger JSON String
      * @return ein JSONObject, aus dem die Werte mittels .get("key") ausgelesen werden können
      */
@@ -31,8 +31,8 @@ public class Tools {
 
 
     /**
-     *
-     * @param message die message aus Drasyl
+     * eine Message in einen gültigen JSON-String umwandeln
+     * @param message ein Objekt vom Typ Message
      * @return ein gültiges JSON String
      */
     public static String getMessageAsJSONString(Message message)
@@ -49,7 +49,7 @@ public class Tools {
     }
 
     /**
-     *
+     * Ein MessageEvent in ein Objekt vom Typ Message umwandeln
      * @param event ein Drasyl MessageEvent
      * @return ein Objekt des richtigen Typs (erbt von Message)
      */
@@ -99,13 +99,15 @@ public class Tools {
     }
 
 
-
+    /**
+     * Eine Instanz der Klasse Tools ist nicht vorgesehen
+     */
     private Tools()
     {
     }
 
     /**
-     *
+     * CRC32-Checksum berechnen
      * @param bytes ein Array an bites, etwa von einem String
      * @return eine CRC32-Checksum
      */
