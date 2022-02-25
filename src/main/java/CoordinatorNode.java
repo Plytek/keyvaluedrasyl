@@ -20,6 +20,7 @@ public class CoordinatorNode extends DrasylNode {
     int maxnodes = 9;
     int range = Integer.MAX_VALUE-1;
     int clustersize = 3;
+    int number = 1;
 
     protected CoordinatorNode(DrasylConfig config) throws DrasylException {
         super(config);
@@ -31,6 +32,8 @@ public class CoordinatorNode extends DrasylNode {
     private void registerProcess(Message message)
     {
         registerednodes.add(message.getSender());
+        System.out.println("Node " + number + " hinzugefügt" + " (" + message.getSender() + ")");
+        number++;
         if(registerednodes.size() == maxnodes)
         {
             List<Settings> settingsList = createInitialSettings();
