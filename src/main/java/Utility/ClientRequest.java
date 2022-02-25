@@ -13,6 +13,9 @@ public class ClientRequest extends Message{
     private String affectedKey;
     private String value;
 
+    public ClientRequest() {
+    }
+
     public ClientRequest(String requestType, String affectedKey, String value) {
         super();
         this.requestType = requestType;
