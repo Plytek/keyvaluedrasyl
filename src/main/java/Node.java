@@ -23,6 +23,7 @@ public class Node extends DrasylNode
     private String coordinator;
     private NodeRange range;
     private Map<String, Boolean> localCluster;
+    int welchercluster;
 
     private Timer confirmTimer;
     private Map<String, Message> confirmMessages = new HashMap<>();
@@ -286,12 +287,14 @@ public class Node extends DrasylNode
                     }
                     previousMaster = settings.getPreviousmaster();
                     nextMaster = settings.getNextmaster();
+                    welchercluster = settings.getClusterid();
                     range = new NodeRange(settings.getLow(), settings.getHigh());
 
                     System.out.println(localCluster.toString() + "\n" + isMaster + "\n" + previousMaster + "\n" + nextMaster + "\n" + range.toString() + "\n" + settings.getClusterid());
                     break;
                 case "clientrequest":
-                    System.out.println("Clientrequest: " + event);
+                    ClientRequest request = (ClientRequest) message;
+                    System.out.println("Bemerkung: " + request.getBemerkung() + "Cluster: " +welchercluster);
                     handleClientRequest((ClientRequest) message);
 
                 default:
