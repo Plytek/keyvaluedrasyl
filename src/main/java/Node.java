@@ -27,7 +27,7 @@ public class Node extends DrasylNode
     private Timer confirmTimer;
     private Map<String, Message> confirmMessages = new HashMap<>();
 
-    private Map<Integer, Map<String,String>> datastorage;
+    private Map<Integer, Map<String,String>> datastorage = new HashMap<>();
 
     protected Node(DrasylConfig config) throws DrasylException {
         super(config);
