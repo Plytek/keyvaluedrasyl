@@ -30,17 +30,9 @@ public class ClientRequest extends Message{
         this.messageType = "clientrequest";
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ClientRequest that = (ClientRequest) o;
-        return Objects.equals(requestType, that.requestType) && affectedKey.equals(that.affectedKey) && Objects.equals(value, that.value);
-    }
-
-
-    @Override
-    public int hashCode() {
-        return Math.abs(Objects.hash(affectedKey))*31%(Integer.MAX_VALUE-1);
+    public int verteilerHash()
+    {
+        int hash = affectedKey.hashCode();
+        return hash*31%(Integer.MAX_VALUE-1);
     }
 }

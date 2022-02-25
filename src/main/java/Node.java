@@ -112,8 +112,8 @@ public class Node extends DrasylNode
 
     public void handleClientRequest(ClientRequest clientRequest)
     {
-        int requesthash = clientRequest.getAffectedKey().hashCode();
-        System.out.println(requesthash);
+        int requesthash = clientRequest.verteilerHash();
+        System.out.println("Hashcode: " + requesthash);
         if(requesthash >= range.getLow() && requesthash <= range.getHigh())
         {
             if(isMaster)
