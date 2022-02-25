@@ -12,8 +12,8 @@ import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
 public class Tools {
-    private static final JSONParser PARSER = new JSONParser();
-    protected static final ObjectMapper mapper = new ObjectMapper();
+    private static JSONParser PARSER = new JSONParser();
+    protected static ObjectMapper mapper = new ObjectMapper();
 
     /**
      * JSON-String parsen
@@ -22,6 +22,7 @@ public class Tools {
      */
     public static JSONObject parseJSON(String json) {
         try {
+            PARSER = new JSONParser();
             return (JSONObject) PARSER.parse(json);
         } catch (ParseException e) {
             e.printStackTrace();
@@ -58,6 +59,10 @@ public class Tools {
         try {
             String payload = event.getPayload().toString();
             JSONObject j = parseJSON(payload);
+            if(j == null)
+            {
+                System.out.println();
+            }
             Class javaType = null;
             switch (j.get("messageType").toString()) {
                 case "clientrequest": {

@@ -228,7 +228,7 @@ public class Node extends DrasylNode
                     System.out.println(localCluster.toString() + "\n" + isMaster + "\n" + previousMaster + "\n" + nextMaster + "\n" + range.toString());
                     break;
                 default:
-                    System.out.println("unknown message-type:" + messageType);
+                    //System.out.println("unknown message-type:" + messageType);
                     break;
             }
         }
@@ -248,7 +248,7 @@ public class Node extends DrasylNode
             }
             else
             {
-                System.out.println("unknown drasyl-event: " + event);
+                //System.out.println("unknown drasyl-event: " + event);
             }
         }
     }
