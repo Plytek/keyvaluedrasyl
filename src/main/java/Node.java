@@ -158,7 +158,10 @@ public class Node extends DrasylNode
         for(Integer key : datastorage.keySet())
         {
             Map<String, String> data = datastorage.get(key);
-            System.out.println(data);
+            for(Map.Entry<String, String> entry : data.entrySet())
+            {
+                System.out.println(entry.getKey() + ":" + entry.getValue());
+            }
         }
     }
 
