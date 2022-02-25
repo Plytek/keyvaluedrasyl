@@ -35,8 +35,9 @@ public class ClientRequest extends Message{
         return Objects.equals(requestType, that.requestType) && affectedKey.equals(that.affectedKey) && Objects.equals(value, that.value);
     }
 
+
     @Override
     public int hashCode() {
-        return Objects.hash(affectedKey)*31%9950;
+        return Math.abs(Objects.hash(affectedKey))%(Integer.MAX_VALUE-1);
     }
 }
