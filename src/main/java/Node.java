@@ -18,10 +18,11 @@ public class Node extends DrasylNode
 {
     private Timer timer;
     private boolean isMaster = false;
-    private DrasylAddress previousMaster;
-    private DrasylAddress nextMaster;
+    private String previousMaster;
+    private String nextMaster;
+    private String coordinator;
     private NodeRange range;
-    private Map<DrasylAddress, Boolean> localCluster;
+    private Map<String, Boolean> localCluster;
 
     private Timer confirmTimer;
     private Map<String, Message> confirmMessages = new HashMap<>();
@@ -208,6 +209,24 @@ public class Node extends DrasylNode
                 case "confirmation":
                     System.out.println("confirmation");
                     break;
+                case "settings":
+                    Settings settings = (Settings) message;
+                    isMaster = settings.isMaster();
+                    List<String> cluster = settings.getLocalcluster();
+                    if(localCluster == null) localCluster = new HashMap<>();
+                    for(int i = 0; i < cluster.size(); i++)
+                    {
+                        boolean master;
+                        if(i == 0) master = true;
+                        else master = false;
+                        localCluster.put(cluster.get(i), master);
+                    }
+                    previousMaster = settings.getPreviousmaster();
+                    nextMaster = settings.getNextmaster();
+                    range = new NodeRange(settings.getLow(), settings.getHigh());
+
+                    System.out.println(localCluster.toString() + "\n" + isMaster + "\n" + previousMaster + "\n" + nextMaster + "\n" + range.toString());
+                    break;
                 default:
                     System.out.println("unknown message-type:" + messageType);
                     break;
@@ -216,7 +235,12 @@ public class Node extends DrasylNode
         else {
             if(event instanceof NodeOnlineEvent)
             {
-                System.out.println("NodeOnlineEvent");
+                System.out.println("Drasylevent: " + event);
+                Message message = new Message();
+                message.setMessageType("registernode");
+                message.setSender(identity.getAddress().toString());
+                message.setRecipient(coordinator);
+                send(coordinator, Tools.getMessageAsJSONString(message));
             }
             else if(event instanceof NodeOfflineEvent)
             {

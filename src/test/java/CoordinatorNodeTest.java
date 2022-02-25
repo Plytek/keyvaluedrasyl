@@ -28,7 +28,7 @@ class CoordinatorNodeTest {
         }
 
         node.setRegisterednodes(adressen);
-        node.calculateRange();
+        node.createInitialSettings();
 
     }
 }
