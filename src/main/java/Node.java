@@ -113,6 +113,7 @@ public class Node extends DrasylNode
     public void handleClientRequest(ClientRequest clientRequest)
     {
         int requesthash = clientRequest.getAffectedKey().hashCode();
+        System.out.println(requesthash);
         if(requesthash >= range.getLow() && requesthash <= range.getHigh())
         {
             if(isMaster)
@@ -152,6 +153,12 @@ public class Node extends DrasylNode
         else
         {
             send(previousMaster, Tools.getMessageAsJSONString(clientRequest));
+        }
+
+        for(Integer key : datastorage.keySet())
+        {
+            Map<String, String> data = datastorage.get(key);
+            System.out.println(data);
         }
     }
 
@@ -252,7 +259,7 @@ public class Node extends DrasylNode
             }
             else {
                 // ansonsten sende selber confirmation
-                sendConfirmation(token, sender);
+                //sendConfirmation(token, sender);
             }
 
             switch(messageType)
