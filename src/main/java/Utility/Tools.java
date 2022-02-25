@@ -24,6 +24,78 @@ public class Tools {
         return null;
     }
 
+
+
+    public static String getMessageAsJSONString(Message content)
+    {
+        try
+        {
+            return mapper.writeValueAsString(content);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            return "{}";
+        }
+    }
+
+    public static Message getMessageFromEvent(MessageEvent e)
+    {
+        try {
+            String payload = e.getPayload().toString();
+            JSONObject j = parseJSON(payload);
+            Class javaType = null;
+            switch (j.get("messageType").toString()) {
+                case "clientrequest": {
+                    javaType = ClientRequest.class;
+                    break;
+                }
+                case "heartbeat": {
+                    javaType = Heartbeat.class;
+                    break;
+                }
+                case "clientresponse":
+                {
+                    javaType = ClientResponse.class;
+                    break;
+                }
+                case "settings":
+                {
+                    javaType = Settings.class;
+                    break;
+                }
+                case "registernode":
+                {
+                    javaType = Message.class;
+                    break;
+                }
+                case "confirm":
+                {
+                    javaType = Message.class;
+                    break;
+                }
+            }
+            return (Message) mapper.readValue(payload.toString(), javaType);
+        }
+        catch (Exception x)
+        {
+            x.printStackTrace();
+            return null;
+        }
+    }
+
+
+
+    private Tools()
+    {
+    }
+
+    public static long getCRC32Checksum(byte[] bytes) {
+        Checksum crc32 = new CRC32();
+        crc32.update(bytes, 0, bytes.length);
+        return crc32.getValue();
+    }
+
     /*public static Message getMessageObject(MessageEvent message)
     {
         try {
@@ -66,64 +138,4 @@ public class Tools {
             return null;
         }
     }*/
-
-    public static String getMessageAsJSONString(Message content)
-    {
-        try
-        {
-            return mapper.writeValueAsString(content);
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-            return "{}";
-        }
-    }
-
-    public static Message getMessageFromEvent(MessageEvent e)
-    {
-        try {
-            String payload = e.getPayload().toString();
-            JSONObject j = parseJSON(payload);
-            Class javaType = null;
-            switch (j.get("_messageType").toString()) {
-                case "clientRequest": {
-                    javaType = ClientRequest.class;
-                    break;
-                }
-                case "heartbeat": {
-                    javaType = Heartbeat.class;
-                    break;
-                }
-                case "clientresponse":
-                {
-                    javaType = ClientResponse.class;
-                    break;
-                }
-                default:
-                {
-                    javaType = Message.class;
-                    break;
-                }
-            }
-            return (Message) mapper.readValue(payload.toString(), javaType);
-        }
-        catch (Exception x)
-        {
-            x.printStackTrace();
-            return null;
-        }
-    }
-
-
-
-    private Tools()
-    {
-    }
-
-    public static long getCRC32Checksum(byte[] bytes) {
-        Checksum crc32 = new CRC32();
-        crc32.update(bytes, 0, bytes.length);
-        return crc32.getValue();
-    }
 }

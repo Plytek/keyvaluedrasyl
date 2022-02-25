@@ -1,12 +1,67 @@
+import org.drasyl.node.DrasylConfig;
 import org.drasyl.node.DrasylException;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletionStage;
 
 public class KeyvalueStoreApplication {
 
-    public static void main(String[] args) {
-        testUI();
+    public static void main(String[] args){
+
+        try {
+            CoordinatorNode coordinatorNode = new CoordinatorNode();
+            DrasylConfig config;
+            config = DrasylConfig.newBuilder().identityPath(Path.of("second.identity")).build();
+            Node node1 = new Node(config);
+            node1.setCoordinator("2daf0e96db01cfbd8575ea645877158b03075bcbd7517166381bdab3019d1f72");
+            config = DrasylConfig.newBuilder().identityPath(Path.of("third.identity")).build();
+            Node node2 = new Node(config);
+            node2.setCoordinator("2daf0e96db01cfbd8575ea645877158b03075bcbd7517166381bdab3019d1f72");
+            config = DrasylConfig.newBuilder().identityPath(Path.of("fourth.identity")).build();
+            Node node3 = new Node(config);
+            node3.setCoordinator("2daf0e96db01cfbd8575ea645877158b03075bcbd7517166381bdab3019d1f72");
+            config = DrasylConfig.newBuilder().identityPath(Path.of("fifth.identity")).build();
+            Node node4 = new Node(config);
+            node3.setCoordinator("2daf0e96db01cfbd8575ea645877158b03075bcbd7517166381bdab3019d1f72");
+            config = DrasylConfig.newBuilder().identityPath(Path.of("sixth.identity")).build();
+            Node node5 = new Node(config);
+            node3.setCoordinator("2daf0e96db01cfbd8575ea645877158b03075bcbd7517166381bdab3019d1f72");
+            config = DrasylConfig.newBuilder().identityPath(Path.of("seventh.identity")).build();
+            Node node6 = new Node(config);
+            node3.setCoordinator("2daf0e96db01cfbd8575ea645877158b03075bcbd7517166381bdab3019d1f72");
+            config = DrasylConfig.newBuilder().identityPath(Path.of("eigth.identity")).build();
+            Node node7 = new Node(config);
+            node3.setCoordinator("2daf0e96db01cfbd8575ea645877158b03075bcbd7517166381bdab3019d1f72");
+            config = DrasylConfig.newBuilder().identityPath(Path.of("nineth.identity")).build();
+            Node node8 = new Node(config);
+            node3.setCoordinator("2daf0e96db01cfbd8575ea645877158b03075bcbd7517166381bdab3019d1f72");
+            config = DrasylConfig.newBuilder().identityPath(Path.of("tenth.identity")).build();
+            Node node9 = new Node(config);
+            node3.setCoordinator("2daf0e96db01cfbd8575ea645877158b03075bcbd7517166381bdab3019d1f72");
+
+            coordinatorNode.start();
+            try {
+                Thread.sleep(4000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            node1.start();
+            node2.start();
+            node3.start();
+            node4.start();
+            node5.start();
+            node6.start();
+            node7.start();
+            node8.start();
+            node9.start();
+
+
+
+        } catch (DrasylException e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -18,25 +73,17 @@ public class KeyvalueStoreApplication {
         } catch (DrasylException e) {
             e.printStackTrace();
         }
-
-        GUIController guiController = new GUIController(clientNode);
-
-        List<String> adressen = new ArrayList<>();
-        adressen.add("179d3a1c332e5ee2780e0530ccf2c3b009d28243c1bb147ffede52404267a2b3");
-        adressen.add("05ecc87c306e7c6d08ad61ddbcc008732d73767720018ebb2b9cba78ddf2d39a");
-
-        clientNode.setMainnodes(adressen);
-
         clientNode.start();
 
         try {
-            Thread.sleep(5000);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        for(String adresse : adressen)
-        {
-            clientNode.send(adresse, "registernode");
-        }
+        GUIController guiController = new GUIController(clientNode);
+
+
+
+
     }
 }

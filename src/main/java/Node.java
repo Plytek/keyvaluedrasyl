@@ -1,5 +1,4 @@
 import Utility.*;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import lombok.Getter;
 import lombok.Setter;
 import org.drasyl.identity.DrasylAddress;
@@ -19,10 +18,11 @@ public class Node extends DrasylNode
 {
     private Timer timer;
     private boolean isMaster = false;
-    private DrasylAddress previousMaster;
-    private DrasylAddress nextMaster;
+    private String previousMaster;
+    private String nextMaster;
+    private String coordinator;
     private NodeRange range;
-    private Map<DrasylAddress, Boolean> localCluster;
+    private Map<String, Boolean> localCluster;
 
     private Timer confirmTimer;
     private Map<String, Message> confirmMessages = new HashMap<>();
@@ -112,7 +112,7 @@ public class Node extends DrasylNode
 
     public void returnRequest(ClientResponse clientResponse)
     {
-        send(clientResponse.get_recipient(), Tools.getMessageAsJSONString(clientResponse));
+        send(clientResponse.getRecipient(), Tools.getMessageAsJSONString(clientResponse));
     }
 
     // nicht mit retrys bei confirmation, gehe von erfolg aus
@@ -123,7 +123,7 @@ public class Node extends DrasylNode
                 this.identity.toString(),
                 receiver
         );
-        confirmMessage.set_token(token);
+        confirmMessage.setToken(token);
 
 
         this.send(receiver, Tools.getMessageAsJSONString(confirmMessage));
@@ -132,15 +132,15 @@ public class Node extends DrasylNode
     public void sendConfirmedMessage(Message message)
     {
         long currentTime = System.currentTimeMillis();
-        message.set_time(currentTime);
-        confirmMessages.put(message.get_token(), message);
+        message.setTime(currentTime);
+        confirmMessages.put(message.getToken(), message);
         if(confirmTimer == null)
         {
             // start MessageConfirmer, falls noch nicht aktiv
             startMessageConfirmer(1000);
         }
 
-        this.send(message.get_recipient(), Tools.getMessageAsJSONString(message));
+        this.send(message.getRecipient(), Tools.getMessageAsJSONString(message));
     }
 
     public void checkTimeoutMessage(String token)
@@ -149,7 +149,7 @@ public class Node extends DrasylNode
         Message message = confirmMessages.get(token);
 
         // nur handeln falls timeout  nach 5 Sekunden
-        if(currentTime - message.get_time() > 5000)
+        if(currentTime - message.getTime() > 5000)
         {
             // counter zählt wie oft bisher timeout aufgetaucht -> jetzt einmal mehr als counter
             // timer updaten für ggf nächsten timeout
@@ -187,14 +187,13 @@ public class Node extends DrasylNode
     public void onEvent(Event event) {
         if(event instanceof MessageEvent messageEvent)
         {
-            System.out.println("MessageEvent: " + messageEvent);
-
             String sender = messageEvent.getSender().toString();
+
             Message message = Tools.getMessageFromEvent(messageEvent);
-            String messageType = message.get_messageType();
 
+            String messageType = message.getMessageType();
 
-            String token = message.get_token();
+            String token = message.getToken();
             if(confirmMessages.containsKey(token))
             {
                 // falls confirmation auf gesendete Message, so entferne aus confirm-Queue
@@ -213,6 +212,24 @@ public class Node extends DrasylNode
                 case "confirmation":
                     System.out.println("confirmation");
                     break;
+                case "settings":
+                    Settings settings = (Settings) message;
+                    isMaster = settings.isMaster();
+                    List<String> cluster = settings.getLocalcluster();
+                    if(localCluster == null) localCluster = new HashMap<>();
+                    for(int i = 0; i < cluster.size(); i++)
+                    {
+                        boolean master;
+                        if(i == 0) master = true;
+                        else master = false;
+                        localCluster.put(cluster.get(i), master);
+                    }
+                    previousMaster = settings.getPreviousmaster();
+                    nextMaster = settings.getNextmaster();
+                    range = new NodeRange(settings.getLow(), settings.getHigh());
+
+                    System.out.println(localCluster.toString() + "\n" + isMaster + "\n" + previousMaster + "\n" + nextMaster + "\n" + range.toString());
+                    break;
                 default:
                     System.out.println("unknown message-type:" + messageType);
                     break;
@@ -221,7 +238,12 @@ public class Node extends DrasylNode
         else {
             if(event instanceof NodeOnlineEvent)
             {
-                System.out.println("NodeOnlineEvent");
+                System.out.println("Drasylevent: " + event);
+                Message message = new Message();
+                message.setMessageType("registernode");
+                message.setSender(identity.getAddress().toString());
+                message.setRecipient(coordinator);
+                send(coordinator, Tools.getMessageAsJSONString(message));
             }
             else if(event instanceof NodeOfflineEvent)
             {

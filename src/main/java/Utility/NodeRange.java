@@ -15,4 +15,11 @@ public class NodeRange
         this.high = high;
     }
 
+    @Override
+    public String toString() {
+        return "NodeRange{" +
+                "low=" + low +
+                ", high=" + high +
+                '}';
+    }
 }

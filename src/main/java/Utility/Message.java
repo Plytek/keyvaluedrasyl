@@ -8,35 +8,33 @@ import java.util.UUID;
 @Setter
 public class Message
 {
-    protected String _messageType;
-    protected long _time;
-    protected String _token;
-    protected String _sender;
-    protected String _recipient;
-    protected int _counter;
+    protected String messageType;
+    protected long time;
+    protected String token;
+    protected String sender;
+    protected String recipient;
+    protected int counter;
 
 
     public Message() {
-        _time = System.currentTimeMillis();
-        _token = UUID.randomUUID().toString();
     }
 
     public Message(String messageType, String sender, String recipient)
     {
-        _token = UUID.randomUUID().toString();
-        _messageType = messageType;
-        _time = System.currentTimeMillis();
-        _sender = sender;
-        _recipient = recipient;
+        token = UUID.randomUUID().toString();
+        this.messageType = messageType;
+        time = System.currentTimeMillis();
+        sender = sender;
+        recipient = recipient;
     }
 
     public void tickCounter()
     {
-        _counter += 1;
+        counter += 1;
     }
 
     public void updateTimestamp() {
-        _time = System.currentTimeMillis();
+        time = System.currentTimeMillis();
     }
 
 }
