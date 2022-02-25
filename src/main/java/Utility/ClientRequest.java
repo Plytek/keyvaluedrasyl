@@ -33,6 +33,6 @@ public class ClientRequest extends Message{
     public int verteilerHash()
     {
         int hash = affectedKey.hashCode();
-        return hash*31%(Integer.MAX_VALUE-1);
+        return Math.abs(hash*31%(Integer.MAX_VALUE-1));
     }
 }
