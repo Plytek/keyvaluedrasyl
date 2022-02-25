@@ -15,6 +15,11 @@ public class Tools {
     private static final JSONParser PARSER = new JSONParser();
     protected static final ObjectMapper mapper = new ObjectMapper();
 
+    /**
+     * JSON-String parsen
+     * @param json ein gültiger JSON String
+     * @return ein JSONObject, aus dem die Werte mittels .get("key") ausgelesen werden können
+     */
     public static JSONObject parseJSON(String json) {
         try {
             return (JSONObject) PARSER.parse(json);
@@ -25,12 +30,16 @@ public class Tools {
     }
 
 
-
-    public static String getMessageAsJSONString(Message content)
+    /**
+     * eine Message in einen gültigen JSON-String umwandeln
+     * @param message ein Objekt vom Typ Message
+     * @return ein gültiges JSON String
+     */
+    public static String getMessageAsJSONString(Message message)
     {
         try
         {
-            return mapper.writeValueAsString(content);
+            return mapper.writeValueAsString(message);
         }
         catch (Exception e)
         {
@@ -39,10 +48,15 @@ public class Tools {
         }
     }
 
-    public static Message getMessageFromEvent(MessageEvent e)
+    /**
+     * Ein MessageEvent in ein Objekt vom Typ Message umwandeln
+     * @param event ein Drasyl MessageEvent
+     * @return ein Objekt des richtigen Typs (erbt von Message)
+     */
+    public static Message getMessageFromEvent(MessageEvent event)
     {
         try {
-            String payload = e.getPayload().toString();
+            String payload = event.getPayload().toString();
             JSONObject j = parseJSON(payload);
             Class javaType = null;
             switch (j.get("messageType").toString()) {
@@ -85,11 +99,18 @@ public class Tools {
     }
 
 
-
+    /**
+     * Eine Instanz der Klasse Tools ist nicht vorgesehen
+     */
     private Tools()
     {
     }
 
+    /**
+     * CRC32-Checksum berechnen
+     * @param bytes ein Array an bites, etwa von einem String
+     * @return eine CRC32-Checksum
+     */
     public static long getCRC32Checksum(byte[] bytes) {
         Checksum crc32 = new CRC32();
         crc32.update(bytes, 0, bytes.length);

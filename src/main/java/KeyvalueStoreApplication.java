@@ -24,37 +24,77 @@ public class KeyvalueStoreApplication {
             node3.setCoordinator("2daf0e96db01cfbd8575ea645877158b03075bcbd7517166381bdab3019d1f72");
             config = DrasylConfig.newBuilder().identityPath(Path.of("fifth.identity")).build();
             Node node4 = new Node(config);
-            node3.setCoordinator("2daf0e96db01cfbd8575ea645877158b03075bcbd7517166381bdab3019d1f72");
+            node4.setCoordinator("2daf0e96db01cfbd8575ea645877158b03075bcbd7517166381bdab3019d1f72");
             config = DrasylConfig.newBuilder().identityPath(Path.of("sixth.identity")).build();
             Node node5 = new Node(config);
-            node3.setCoordinator("2daf0e96db01cfbd8575ea645877158b03075bcbd7517166381bdab3019d1f72");
+            node5.setCoordinator("2daf0e96db01cfbd8575ea645877158b03075bcbd7517166381bdab3019d1f72");
             config = DrasylConfig.newBuilder().identityPath(Path.of("seventh.identity")).build();
             Node node6 = new Node(config);
-            node3.setCoordinator("2daf0e96db01cfbd8575ea645877158b03075bcbd7517166381bdab3019d1f72");
+            node6.setCoordinator("2daf0e96db01cfbd8575ea645877158b03075bcbd7517166381bdab3019d1f72");
             config = DrasylConfig.newBuilder().identityPath(Path.of("eigth.identity")).build();
             Node node7 = new Node(config);
-            node3.setCoordinator("2daf0e96db01cfbd8575ea645877158b03075bcbd7517166381bdab3019d1f72");
+            node7.setCoordinator("2daf0e96db01cfbd8575ea645877158b03075bcbd7517166381bdab3019d1f72");
             config = DrasylConfig.newBuilder().identityPath(Path.of("nineth.identity")).build();
             Node node8 = new Node(config);
-            node3.setCoordinator("2daf0e96db01cfbd8575ea645877158b03075bcbd7517166381bdab3019d1f72");
+            node8.setCoordinator("2daf0e96db01cfbd8575ea645877158b03075bcbd7517166381bdab3019d1f72");
             config = DrasylConfig.newBuilder().identityPath(Path.of("tenth.identity")).build();
             Node node9 = new Node(config);
-            node3.setCoordinator("2daf0e96db01cfbd8575ea645877158b03075bcbd7517166381bdab3019d1f72");
+            node9.setCoordinator("2daf0e96db01cfbd8575ea645877158b03075bcbd7517166381bdab3019d1f72");
 
             coordinatorNode.start();
             try {
-                Thread.sleep(4000);
+                Thread.sleep(2000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
             node1.start();
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             node2.start();
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             node3.start();
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             node4.start();
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             node5.start();
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             node6.start();
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             node7.start();
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             node8.start();
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             node9.start();
 
 

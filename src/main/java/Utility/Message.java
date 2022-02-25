@@ -28,11 +28,17 @@ public class Message
         recipient = recipient;
     }
 
+    /**
+     * Den Zustellversuchs-Counter um 1 erhöhen
+     */
     public void tickCounter()
     {
         counter += 1;
     }
 
+    /**
+     * Zeitstempel auf aktuelle Zeit setzen
+     */
     public void updateTimestamp() {
         time = System.currentTimeMillis();
     }
