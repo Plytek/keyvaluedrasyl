@@ -18,13 +18,13 @@ public class ClientRequest extends Message{
         this.requestType = requestType;
         this.affectedKey = affectedKey;
         this.value = value;
-        this._messageType = "clientrequest";
+        this.messageType = "clientrequest";
     }
 
     public ClientRequest(String requestType, String affectedKey) {
         this.requestType = requestType;
         this.affectedKey = affectedKey;
-        this._messageType = "clientrequest";
+        this.messageType = "clientrequest";
     }
 
     @Override

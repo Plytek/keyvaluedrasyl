@@ -1,5 +1,4 @@
 import Utility.*;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import lombok.Getter;
 import lombok.Setter;
 import org.drasyl.identity.DrasylAddress;
@@ -112,7 +111,7 @@ public class Node extends DrasylNode
 
     public void returnRequest(ClientResponse clientResponse)
     {
-        send(clientResponse.get_recipient(), Tools.getMessageAsJSONString(clientResponse));
+        send(clientResponse.getRecipient(), Tools.getMessageAsJSONString(clientResponse));
     }
 
     // nicht mit retrys bei confirmation, gehe von erfolg aus
@@ -123,7 +122,7 @@ public class Node extends DrasylNode
                 this.identity.toString(),
                 receiver
         );
-        confirmMessage.set_token(token);
+        confirmMessage.setToken(token);
 
 
         this.send(receiver, Tools.getMessageAsJSONString(confirmMessage));
@@ -132,15 +131,15 @@ public class Node extends DrasylNode
     public void sendConfirmedMessage(Message message)
     {
         long currentTime = System.currentTimeMillis();
-        message.set_time(currentTime);
-        confirmMessages.put(message.get_token(), message);
+        message.setTime(currentTime);
+        confirmMessages.put(message.getToken(), message);
         if(confirmTimer == null)
         {
             // start MessageConfirmer, falls noch nicht aktiv
             startMessageConfirmer(1000);
         }
 
-        this.send(message.get_recipient(), Tools.getMessageAsJSONString(message));
+        this.send(message.getRecipient(), Tools.getMessageAsJSONString(message));
     }
 
     public void checkTimeoutMessage(String token)
@@ -149,18 +148,18 @@ public class Node extends DrasylNode
         Message message = confirmMessages.get(token);
 
         // nur handeln falls timeout  nach 5 Sekunden
-        if(currentTime - message.get_time() > 5000)
+        if(currentTime - message.getTime() > 5000)
         {
             // maximal 3 Timeouts
-            if(message.get_counter() >= 3) {
+            if(message.getCounter() >= 3) {
                 System.out.println("TODO: Dreimal Timeout bei Message Delivery!");
             } else {
-                System.out.println("Timeout Nummer " + (message.get_counter()+1));
+                System.out.println("Timeout Nummer " + (message.getCounter()+1));
                 // counter & time aktualisieren
                 // erneut zustellen
                 message.tickCounter();
-                message.set_time(currentTime);
-                this.send(message.get_recipient(), Tools.getMessageAsJSONString(message));
+                message.setTime(currentTime);
+                this.send(message.getRecipient(), Tools.getMessageAsJSONString(message));
             }
         }
     }
@@ -188,9 +187,9 @@ public class Node extends DrasylNode
 
             Message message = Tools.getMessageFromEvent(messageEvent);
 
-            String messageType = message.get_messageType();
+            String messageType = message.getMessageType();
 
-            String token = message.get_token();
+            String token = message.getToken();
             if(confirmMessages.containsKey(token))
             {
                 // falls confirmation auf gesendete Message, so entferne aus confirm-Queue

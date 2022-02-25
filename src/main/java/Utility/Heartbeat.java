@@ -2,7 +2,6 @@ package Utility;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.drasyl.identity.DrasylAddress;
 
 @Getter
 @Setter
@@ -13,11 +12,11 @@ public class Heartbeat extends Message
     public Heartbeat(String heartbeat) {
         super();
         this.heartbeat = heartbeat;
-        this._messageType = "heartbeat";
+        this.messageType = "heartbeat";
     }
 
     public Heartbeat() {
         super();
-        this._messageType = "heartbeat";
+        this.messageType = "heartbeat";
     }
 }

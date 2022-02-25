@@ -31,8 +31,8 @@ public class ClientNode extends DrasylNode
         Random rand = new Random();
         String address = mainnodes.get(rand.nextInt(mainnodes.size()));
         ClientRequest request = new ClientRequest("create", key, value);
-        request.set_recipient(address);
-        request.set_sender(identity().getAddress().toString());
+        request.setRecipient(address);
+        request.setSender(identity().getAddress().toString());
         send(address, Tools.getMessageAsJSONString(request));
     }
 
@@ -65,8 +65,9 @@ public class ClientNode extends DrasylNode
         System.out.println("Event received: " + event);
         if(event instanceof MessageEvent e)
         {
+            System.out.println("Stop here");
             ClientResponse message = (ClientResponse) Tools.getMessageFromEvent(e);
-            switch (message.get_messageType())
+            switch (message.getMessageType())
             {
                 case "clientresponse":
                 {
