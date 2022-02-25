@@ -17,13 +17,13 @@ public class KeyvalueStoreApplication {
             CoordinatorNode coordinatorNode = new CoordinatorNode(config);
             config = DrasylConfig.newBuilder().identityPath(Path.of("third.identity")).build();
             Node node2 = new Node(config);
-            node2.setCoordinator("2daf0e96db01cfbd8575ea645877158b03075bcbd7517166381bdab3019d1f72");
+            node2.setCoordinator("b1a6343a59f723efb93807b2f71727063bde5469a92a9124d7d0906e767c7899");
             config = DrasylConfig.newBuilder().identityPath(Path.of("fourth.identity")).build();
             Node node3 = new Node(config);
-            node3.setCoordinator("2daf0e96db01cfbd8575ea645877158b03075bcbd7517166381bdab3019d1f72");
+            node3.setCoordinator("b1a6343a59f723efb93807b2f71727063bde5469a92a9124d7d0906e767c7899");
             config = DrasylConfig.newBuilder().identityPath(Path.of("fifth.identity")).build();
             Node node4 = new Node(config);
-            node4.setCoordinator("2daf0e96db01cfbd8575ea645877158b03075bcbd7517166381bdab3019d1f72");
+            node4.setCoordinator("b1a6343a59f723efb93807b2f71727063bde5469a92a9124d7d0906e767c7899");
             config = DrasylConfig.newBuilder().identityPath(Path.of("sixth.identity")).build();
             Node node5 = new Node(config);
             node5.setCoordinator("2daf0e96db01cfbd8575ea645877158b03075bcbd7517166381bdab3019d1f72");
@@ -103,6 +103,10 @@ public class KeyvalueStoreApplication {
             }
             clientNode.setMainnodes(coordinatorNode.getMainnodes());
             testUI(clientNode);
+
+            node2.start();
+            node3.start();
+            node4.start();
 
 
         } catch (DrasylException e) {

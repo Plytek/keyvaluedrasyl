@@ -131,6 +131,7 @@ public class Node extends DrasylNode
                 case "create":
                 {
                     handleCreate(requesthash, clientRequest.getAffectedKey(), clientRequest.getValue());
+                    break;
                 }
                 case "read":
                 {
@@ -139,11 +140,10 @@ public class Node extends DrasylNode
                     clientResponse.setRecipient(clientRequest.getSender());
                     clientResponse.setMessageType("clientresponse");
                     returnRequest(clientResponse);
+                    break;
                 }
 
             }
-
-
 
         }
         else if(requesthash > range.getHigh())
@@ -154,12 +154,13 @@ public class Node extends DrasylNode
         {
             send(previousMaster, Tools.getMessageAsJSONString(clientRequest));
         }
-
+        System.out.println("Hier1");
         for(Integer key : datastorage.keySet())
         {
             Map<String, String> data = datastorage.get(key);
             for(Map.Entry<String, String> entry : data.entrySet())
             {
+                System.out.println("Hier2");
                 System.out.println(entry.getKey() + ":" + entry.getValue());
             }
         }
