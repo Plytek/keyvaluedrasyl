@@ -157,13 +157,11 @@ public class Node extends DrasylNode
             clientRequest.setBemerkung("An prev gesendet");
             send(previousMaster, Tools.getMessageAsJSONString(clientRequest));
         }
-        System.out.println("Hier1");
         for(Integer key : datastorage.keySet())
         {
             Map<String, String> data = datastorage.get(key);
             for(Map.Entry<String, String> entry : data.entrySet())
             {
-                System.out.println("Hier2");
                 System.out.println(entry.getKey() + ":" + entry.getValue());
             }
         }
@@ -293,7 +291,7 @@ public class Node extends DrasylNode
                     System.out.println(localCluster.toString() + "\n" + isMaster + "\n" + previousMaster + "\n" + nextMaster + "\n" + range.toString() + "\n" + settings.getClusterid());
                     break;
                 case "clientrequest":
-                    System.out.print("Clientrequest: " + event);
+                    System.out.println("Clientrequest: " + event);
                     handleClientRequest((ClientRequest) message);
 
                 default:
