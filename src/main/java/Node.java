@@ -151,15 +151,18 @@ public class Node extends DrasylNode
         // nur handeln falls timeout  nach 5 Sekunden
         if(currentTime - message.get_time() > 5000)
         {
+            // counter zählt wie oft bisher timeout aufgetaucht -> jetzt einmal mehr als counter
+            // timer updaten für ggf nächsten timeout
+            message.tickCounter();
+            message.updateTimestamp();
+            int timeouts = message.get_counter();
+
             // maximal 3 Timeouts
-            if(message.get_counter() >= 3) {
+            if(timeouts >= 3) {
                 System.out.println("TODO: Dreimal Timeout bei Message Delivery!");
             } else {
-                System.out.println("Timeout Nummer " + (message.get_counter()+1));
-                // counter & time aktualisieren
+                System.out.println("Timeout Nummer " + timeouts);
                 // erneut zustellen
-                message.tickCounter();
-                message.set_time(currentTime);
                 this.send(message.get_recipient(), Tools.getMessageAsJSONString(message));
             }
         }
@@ -184,11 +187,12 @@ public class Node extends DrasylNode
     public void onEvent(Event event) {
         if(event instanceof MessageEvent messageEvent)
         {
+            System.out.println("MessageEvent: " + messageEvent);
+
             String sender = messageEvent.getSender().toString();
-
             Message message = Tools.getMessageFromEvent(messageEvent);
-
             String messageType = message.get_messageType();
+
 
             String token = message.get_token();
             if(confirmMessages.containsKey(token))

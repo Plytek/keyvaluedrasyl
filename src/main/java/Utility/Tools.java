@@ -86,18 +86,24 @@ public class Tools {
             String payload = e.getPayload().toString();
             JSONObject j = parseJSON(payload);
             Class javaType = null;
-            switch (j.get("messageType").toString()) {
+            switch (j.get("_messageType").toString()) {
                 case "clientRequest": {
                     javaType = ClientRequest.class;
                     break;
                 }
-                case "Heartbeat": {
+                case "heartbeat": {
                     javaType = Heartbeat.class;
                     break;
                 }
                 case "clientresponse":
                 {
                     javaType = ClientResponse.class;
+                    break;
+                }
+                default:
+                {
+                    javaType = Message.class;
+                    break;
                 }
             }
             return (Message) mapper.readValue(payload.toString(), javaType);
