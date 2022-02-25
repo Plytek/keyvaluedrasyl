@@ -110,6 +110,57 @@ public class Node extends DrasylNode
 
     }
 
+    public void handleClientRequest(ClientRequest clientRequest)
+    {
+        int requesthash = clientRequest.getAffectedKey().hashCode();
+        if(requesthash >= range.getLow() && requesthash <= range.getHigh())
+        {
+            if(isMaster)
+            {
+                for(int i = 0; i < localCluster.size(); i++)
+                {
+                    String adresse = (String) localCluster.keySet().toArray()[i];
+                    if(!localCluster.get(adresse))
+                    {
+                        send(adresse, Tools.getMessageAsJSONString(clientRequest));
+                    }
+                }
+            }
+            switch (clientRequest.getRequestType()){
+                case "create":
+                {
+                    handleCreate(requesthash, clientRequest.getAffectedKey(), clientRequest.getValue());
+                }
+                case "read":
+                {
+                    ClientResponse clientResponse = new ClientResponse();
+                    clientResponse.setResponse(datastorage.get(requesthash).get(clientRequest.getAffectedKey()));
+                    clientResponse.setRecipient(clientRequest.getSender());
+                    clientResponse.setMessageType("clientresponse");
+                    returnRequest(clientResponse);
+                }
+
+            }
+
+
+
+        }
+        else if(requesthash > range.getHigh())
+        {
+            send(nextMaster, Tools.getMessageAsJSONString(clientRequest));
+        }
+        else
+        {
+            send(previousMaster, Tools.getMessageAsJSONString(clientRequest));
+        }
+    }
+
+    public void handleCreate(int requesthash, String key, String value)
+    {
+        datastorage.computeIfAbsent(requesthash, k -> new HashMap<>()).put(key, value);
+
+    }
+
     public void returnRequest(ClientResponse clientResponse)
     {
         send(clientResponse.getRecipient(), Tools.getMessageAsJSONString(clientResponse));
@@ -225,8 +276,11 @@ public class Node extends DrasylNode
                     nextMaster = settings.getNextmaster();
                     range = new NodeRange(settings.getLow(), settings.getHigh());
 
-                    System.out.println(localCluster.toString() + "\n" + isMaster + "\n" + previousMaster + "\n" + nextMaster + "\n" + range.toString());
+                    System.out.println(localCluster.toString() + "\n" + isMaster + "\n" + previousMaster + "\n" + nextMaster + "\n" + range.toString() + "\n" + settings.getClusterid());
                     break;
+                case "clientrequest":
+                    handleClientRequest((ClientRequest) message);
+
                 default:
                     //System.out.println("unknown message-type:" + messageType);
                     break;
