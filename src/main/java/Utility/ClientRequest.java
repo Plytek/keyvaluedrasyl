@@ -41,6 +41,6 @@ public class ClientRequest extends Message{
 
     @Override
     public int hashCode() {
-        return Math.abs(Objects.hash(affectedKey))%(Integer.MAX_VALUE-1);
+        return Math.abs(Objects.hash(affectedKey))*31%(Integer.MAX_VALUE-1);
     }
 }
