@@ -41,6 +41,8 @@ public class ClientNode extends DrasylNode
         Random rand = new Random();
         String address = mainnodes.get(rand.nextInt(mainnodes.size()));
         ClientRequest request = new ClientRequest("delete", key);
+        request.setRecipient(address);
+        request.setSender(identity().getAddress().toString());
         send(address, Tools.getMessageAsJSONString(request));
     }
 
@@ -49,6 +51,8 @@ public class ClientNode extends DrasylNode
         Random rand = new Random();
         String address = mainnodes.get(rand.nextInt(mainnodes.size()));
         ClientRequest request = new ClientRequest("update", key, value);
+        request.setRecipient(address);
+        request.setSender(identity().getAddress().toString());
         send(address, Tools.getMessageAsJSONString(request));
     }
 
@@ -57,6 +61,8 @@ public class ClientNode extends DrasylNode
         Random rand = new Random();
         String address = mainnodes.get(rand.nextInt(mainnodes.size()));
         ClientRequest request = new ClientRequest("read", key);
+        request.setRecipient(address);
+        request.setSender(identity().getAddress().toString());
         send(address, Tools.getMessageAsJSONString(request));
     }
 

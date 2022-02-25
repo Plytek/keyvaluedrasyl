@@ -59,10 +59,6 @@ public class Tools {
         try {
             String payload = event.getPayload().toString();
             JSONObject j = parseJSON(payload);
-            if(j == null)
-            {
-                System.out.println();
-            }
             Class javaType = null;
             switch (j.get("messageType").toString()) {
                 case "clientrequest": {
@@ -122,46 +118,4 @@ public class Tools {
         return crc32.getValue();
     }
 
-    /*public static Message getMessageObject(MessageEvent message)
-    {
-        try {
-            String payload = message.getPayload().toString();
-            JSONObject j = parseJSON(payload);
-            Class javaType = null;
-            String messageType = j.get("messageType").toString();
-            switch (messageType)
-            {
-                case("heartbeat"):
-                {
-                    javaType = Heartbeat.class;
-                    break;
-                }
-                case("clientRequest"):
-                {
-                    javaType = ClientRequest.class;
-                    break;
-                }
-                default:
-                    return null;
-            }
-            DrasylAddress recipient = new DrasylAddress() {
-                @Override
-                public byte[] toByteArray() {
-                    return j.get("recipient").toString().getBytes(StandardCharsets.UTF_8);
-                }
-                @Override
-                public String toString()
-                {
-                    return j.get("recipient").toString();
-                }
-            };;
-            Message msg = new Message(j.get("messageType").toString(), j.get("token").toString(), (MessageContent) mapper.readValue(j.get("content").toString(), javaType), message.getSender().toString(), j.get("recipient").toString());
-            return msg;
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-            return null;
-        }
-    }*/
 }
