@@ -1,4 +1,5 @@
 import Utility.Message;
+import Utility.NodeResponse;
 import Utility.Settings;
 import Utility.Tools;
 import lombok.Getter;
@@ -18,9 +19,11 @@ import java.util.*;
 public class CoordinatorNode extends DrasylNode {
     List<String> registerednodes = new ArrayList<>();
     List<String> mainnodes = new ArrayList<>();
-    int maxnodes = 6;
+    List<String> clients = new ArrayList<>();
+    Map<String, Message> responseWaitMap = new HashMap<>();
+    int maxnodes = 9;
     //int range = Integer.MAX_VALUE-1;
-    int range = 10000;
+    int range = 9998;
     int clustersize = 3;
     int number = 1;
 
@@ -41,6 +44,7 @@ public class CoordinatorNode extends DrasylNode {
             List<Settings> settingsList = createInitialSettings();
             for(Settings settings : settingsList)
             {
+                responseWaitMap.put(settings.getToken(), settings);
                 send(settings.getIdentity(), Tools.getMessageAsJSONString(settings));
                 try {
                     Thread.sleep(100);
@@ -51,6 +55,28 @@ public class CoordinatorNode extends DrasylNode {
         }
 
     }
+
+    private void notifyClients()
+    {
+        NodeResponse message = new NodeResponse();
+        message.setMessageType("networkonline");
+        message.generateToken();
+        message.setSender(identity().getAddress().toString());
+        message.setBemerkung("All nodes registered, Network online");
+        message.setNodes(mainnodes);
+        for(String client : clients)
+        {
+            message.setRecipient(client);
+            send(client, Tools.getMessageAsJSONString(message));
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+
 
     public List<Settings> createInitialSettings()
     {
@@ -73,7 +99,11 @@ public class CoordinatorNode extends DrasylNode {
             settings.setHigh(partitionsize*cluster-1);
             settings.setClusterid(cluster);
             settings.setIdentity(address);
+            settings.setHashrange(range);
             settings.setMessageType("settings");
+            settings.generateToken();
+            settings.setRecipient(address);
+            settings.setSender(identity().getAddress().toString());
             settingsList.add(settings);
 
 
@@ -112,7 +142,6 @@ public class CoordinatorNode extends DrasylNode {
     public void onEvent(Event event) {
         if(event instanceof MessageEvent msgevent)
         {
-            System.out.println();
             Message message = null;
             message = Tools.getMessageFromEvent(msgevent);
 
@@ -121,8 +150,26 @@ public class CoordinatorNode extends DrasylNode {
                 case "registernode": {
                     System.out.println("Drasylevent: " + event);
                     registerProcess(message);
+                    break;
+                }
+                case "registerclient": {
+                    clients.add(message.getSender());
+                    break;
+                }
+                case "confirmation":
+                {
+                    //System.out.println("Waitlist vorher: " + responseWaitMap);
+                    NodeResponse response = (NodeResponse) message;
+                    responseWaitMap.remove(response.getToken());
+                    //System.out.println("Waitlist nachhher: " + responseWaitMap);
+                    if(responseWaitMap.size() < 9)
+                    {
+                        notifyClients();
+                    }
+                    break;
                 }
             }
+            System.out.println(event);
         }
         if(event instanceof NodeOnlineEvent)
         {

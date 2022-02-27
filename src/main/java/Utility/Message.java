@@ -14,7 +14,7 @@ public class Message
     protected String sender;
     protected String recipient;
     protected int counter;
-
+    protected String bemerkung;
 
     public Message() {
     }
@@ -24,8 +24,8 @@ public class Message
         token = UUID.randomUUID().toString();
         this.messageType = messageType;
         time = System.currentTimeMillis();
-        sender = sender;
-        recipient = recipient;
+        this.sender = sender;
+        this.recipient = recipient;
     }
 
     /**
@@ -41,6 +41,12 @@ public class Message
      */
     public void updateTimestamp() {
         time = System.currentTimeMillis();
+    }
+
+    public String generateToken()
+    {
+        token = UUID.randomUUID().toString();
+        return token;
     }
 
 }

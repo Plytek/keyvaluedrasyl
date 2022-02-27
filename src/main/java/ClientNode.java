@@ -1,12 +1,11 @@
-import Utility.ClientRequest;
-import Utility.Tools;
-import Utility.ClientResponse;
+import Utility.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.drasyl.node.DrasylException;
 import org.drasyl.node.DrasylNode;
 import org.drasyl.node.event.Event;
 import org.drasyl.node.event.MessageEvent;
+import org.drasyl.node.event.NodeOnlineEvent;
 
 import java.util.List;
 import java.util.Random;
@@ -17,6 +16,8 @@ public class ClientNode extends DrasylNode
 {
     List<String> mainnodes;
     String responsevalue = "";
+    String coordinator;
+    boolean networkonline = false;
 
     protected ClientNode() throws DrasylException {
     }
@@ -28,42 +29,59 @@ public class ClientNode extends DrasylNode
 
     public void create(String key, String value)
     {
-        Random rand = new Random();
-        String address = mainnodes.get(rand.nextInt(mainnodes.size()));
-        ClientRequest request = new ClientRequest("create", key, value);
-        request.setRecipient(address);
-        request.setSender(identity().getAddress().toString());
-        send(address, Tools.getMessageAsJSONString(request));
+        if (networkonline) {
+            Random rand = new Random();
+            String address = mainnodes.get(rand.nextInt(mainnodes.size()));
+            ClientRequest request = new ClientRequest("create", key, value);
+            request.setRecipient(address);
+            request.setSender(identity().getAddress().toString());
+            send(address, Tools.getMessageAsJSONString(request));
+        } else { responsevalue = "NETWORK OFFLINE!\nWait for it to start or contact the Administrator";
+        }
     }
 
     public void delete(String key)
     {
-        Random rand = new Random();
-        String address = mainnodes.get(rand.nextInt(mainnodes.size()));
-        ClientRequest request = new ClientRequest("delete", key);
-        request.setRecipient(address);
-        request.setSender(identity().getAddress().toString());
-        send(address, Tools.getMessageAsJSONString(request));
+        if (networkonline) {
+            Random rand = new Random();
+            String address = mainnodes.get(rand.nextInt(mainnodes.size()));
+            ClientRequest request = new ClientRequest("delete", key);
+            request.setRecipient(address);
+            request.setSender(identity().getAddress().toString());
+            send(address, Tools.getMessageAsJSONString(request));
+        }
+        else { responsevalue = "NETWORK OFFLINE!\n Wait for it to start or contact the Administrator";
+    }
+
     }
 
     public void update(String key, String value)
     {
-        Random rand = new Random();
-        String address = mainnodes.get(rand.nextInt(mainnodes.size()));
-        ClientRequest request = new ClientRequest("update", key, value);
-        request.setRecipient(address);
-        request.setSender(identity().getAddress().toString());
-        send(address, Tools.getMessageAsJSONString(request));
+        if (networkonline) {
+            Random rand = new Random();
+            String address = mainnodes.get(rand.nextInt(mainnodes.size()));
+            ClientRequest request = new ClientRequest("update", key, value);
+            request.setRecipient(address);
+            request.setSender(identity().getAddress().toString());
+            send(address, Tools.getMessageAsJSONString(request));
+        }
+        else { responsevalue = "NETWORK OFFLINE!\n Wait for it to start or contact the Administrator";
+    }
+
     }
 
     public void read(String key)
     {
-        Random rand = new Random();
-        String address = mainnodes.get(rand.nextInt(mainnodes.size()));
-        ClientRequest request = new ClientRequest("read", key);
-        request.setRecipient(address);
-        request.setSender(identity().getAddress().toString());
-        send(address, Tools.getMessageAsJSONString(request));
+        if (networkonline) {
+            Random rand = new Random();
+            String address = mainnodes.get(rand.nextInt(mainnodes.size()));
+            ClientRequest request = new ClientRequest("read", key);
+            request.setRecipient(address);
+            request.setSender(identity().getAddress().toString());
+            send(address, Tools.getMessageAsJSONString(request));
+        }
+        else { responsevalue = "NETWORK OFFLINE!\n Wait for it to start or contact the Administrator";
+    }
     }
 
     @Override
@@ -71,12 +89,21 @@ public class ClientNode extends DrasylNode
         System.out.println("Event received: " + event);
         if(event instanceof MessageEvent e)
         {
-            ClientResponse message = (ClientResponse) Tools.getMessageFromEvent(e);
+            Message message = Tools.getMessageFromEvent(e);
             switch (message.getMessageType())
             {
                 case "clientresponse":
                 {
-                    responsevalue = message.getResponse();
+                    ClientResponse response = (ClientResponse) message;
+                    responsevalue = response.getResponse();
+                    break;
+                }
+                case "networkonline":
+                {
+                    NodeResponse response = (NodeResponse) message;
+                    mainnodes = response.getNodes();
+                    networkonline = true;
+                    responsevalue = "NETWORK ONLINE!";
                     break;
                 }
                 default:
@@ -85,6 +112,16 @@ public class ClientNode extends DrasylNode
                 }
             }
 
+        }
+        else if(event instanceof NodeOnlineEvent e)
+        {
+            Message message = new Message();
+            message.setMessageType("registerclient");
+            message.setRecipient(coordinator);
+            message.setSender(identity.getAddress().toString());
+            message.generateToken();
+
+            send(message.getRecipient(), Tools.getMessageAsJSONString(message));
         }
     }
 }

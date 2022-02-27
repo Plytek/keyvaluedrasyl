@@ -24,7 +24,9 @@ public class Node extends DrasylNode
     private String coordinator;
     private NodeRange range;
     private Map<String, Boolean> localCluster;
-    int welchercluster;
+    private int welchercluster;
+    private int hashrange;
+
 
     private Timer confirmTimer;
     private Map<String, Message> confirmMessages = new HashMap<>();
@@ -44,21 +46,7 @@ public class Node extends DrasylNode
 
     }
 
-    public void anfrageVerteilen(ClientRequest clientRequest)
-    {
-        //Muss eventuell noch modifziert werden wenn zB next master Range 0-X hat nach 6666-10000
-        int verteilerhash = clientRequest.hashCode();
-        if(verteilerhash < range.getLow())
-        {
-            send(previousMaster, Tools.getMessageAsJSONString(clientRequest));
-        }
-        else if(verteilerhash > range.getHigh())
-        {
-            send(nextMaster, Tools.getMessageAsJSONString(clientRequest));
-        }
-    }
-
-    public String getAddress() {
+     public String getAddress() {
         return this.identity().getAddress().toString();
     }
 
@@ -192,9 +180,9 @@ public class Node extends DrasylNode
 
                     if(doesKeyExist(requesthash, clientRequest.getAffectedKey()))
                     {
-                        handleUpdate(requesthash, clientRequest.getAffectedKey(), clientRequest.getValue());
                         clientResponse.setResponse("Key: " + clientRequest.getAffectedKey() + " Daten von: " +
                                 datastorage.get(requesthash).get(clientRequest.getAffectedKey()) + " auf " + clientRequest.getValue() + " verändert!");
+                        handleUpdate(requesthash, clientRequest.getAffectedKey(), clientRequest.getValue());
                     }
                     else
                     {
@@ -326,6 +314,24 @@ public class Node extends DrasylNode
         }, 0, intervall);
     }
 
+    private void confirmActivation(Message message)
+    {
+        NodeResponse nodeResponse = new NodeResponse();
+        nodeResponse.setMessageType("confirmation");
+        nodeResponse.setBemerkung("Settings eingerichtet");
+        nodeResponse.setToken(message.getToken());
+        nodeResponse.setRecipient(message.getSender());
+        nodeResponse.setSender(identity().getAddress().toString());
+
+        Random rand = new Random();
+        try {
+            Thread.sleep(rand.nextInt(1000));
+            send(nodeResponse.getRecipient(), Tools.getMessageAsJSONString(nodeResponse));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
     @Override
     public void onEvent(Event event) {
@@ -372,6 +378,9 @@ public class Node extends DrasylNode
                     nextMaster = settings.getNextmaster();
                     welchercluster = settings.getClusterid();
                     range = new NodeRange(settings.getLow(), settings.getHigh());
+                    hashrange = settings.getHashrange();
+
+                    confirmActivation(settings);
 
                     System.out.println(localCluster.toString() + "\n" + isMaster + "\n" + previousMaster + "\n" + nextMaster + "\n" + range.toString() + "\n" + settings.getClusterid());
                     isConnected = true;
