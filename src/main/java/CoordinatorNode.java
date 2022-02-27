@@ -162,7 +162,7 @@ public class CoordinatorNode extends DrasylNode {
                     NodeResponse response = (NodeResponse) message;
                     responseWaitMap.remove(response.getToken());
                     //System.out.println("Waitlist nachhher: " + responseWaitMap);
-                    if(responseWaitMap.size() < 9)
+                    if(responseWaitMap.size() == 5)
                     {
                         notifyClients();
                     }
