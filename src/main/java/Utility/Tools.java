@@ -1,30 +1,32 @@
 package Utility;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.drasyl.node.event.MessageEvent;
-import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-
-
+import java.util.Map;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
 public class Tools {
     private static JSONParser PARSER = new JSONParser();
-    protected static ObjectMapper mapper = new ObjectMapper();
+    private static ObjectMapper MAPPER = new ObjectMapper();
+    private static Map<String, Class> messageTypeClasses = Map.of("clientrequest", ClientRequest.class, "heartbeat", Heartbeat.class, "clientresponse", ClientResponse.class, "settings", Settings.class, "registernode", Message.class, "confirm", Message.class);
 
     /**
      * JSON-String parsen
      * @param json ein gültiger JSON String
-     * @return ein JSONObject, aus dem die Werte mittels .get("key") ausgelesen werden können
+     * @return ein JsonNode, aus dem die Werte mittels .get("key") ausgelesen werden können. Für Strings .get("key").asText() benutzen!
      */
-    public static JSONObject parseJSON(String json) {
+    public static JsonNode parseJSON(String json) {
         try {
-            PARSER = new JSONParser();
-            return (JSONObject) PARSER.parse(json);
-        } catch (ParseException e) {
+            return MAPPER.readTree(json);
+        } catch (JsonMappingException e) {
+            e.printStackTrace();
+        } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
         return null;
@@ -40,7 +42,7 @@ public class Tools {
     {
         try
         {
-            return mapper.writeValueAsString(message);
+            return MAPPER.writeValueAsString(message);
         }
         catch (Exception e)
         {
@@ -58,39 +60,9 @@ public class Tools {
     {
         try {
             String payload = event.getPayload().toString();
-            JSONObject j = parseJSON(payload);
-            Class javaType = null;
-            switch (j.get("messageType").toString()) {
-                case "clientrequest": {
-                    javaType = ClientRequest.class;
-                    break;
-                }
-                case "heartbeat": {
-                    javaType = Heartbeat.class;
-                    break;
-                }
-                case "clientresponse":
-                {
-                    javaType = ClientResponse.class;
-                    break;
-                }
-                case "settings":
-                {
-                    javaType = Settings.class;
-                    break;
-                }
-                case "registernode":
-                {
-                    javaType = Message.class;
-                    break;
-                }
-                case "confirm":
-                {
-                    javaType = Message.class;
-                    break;
-                }
-            }
-            return (Message) mapper.readValue(payload.toString(), javaType);
+            JsonNode j = parseJSON(payload);
+            Class javaType = messageTypeClasses.get(j.get("messageType").asText());
+            return (Message) MAPPER.readValue(payload.toString(), javaType);
         }
         catch (Exception x)
         {
