@@ -60,7 +60,7 @@ public class Tools {
             String payload = event.getPayload().toString();
             JsonNode j = parseJSON(payload);
             Class javaType = messageTypeClasses.get(j.get("messageType").asText());
-            return (Message) MAPPER.readValue(payload.toString(), javaType);
+            return (Message) MAPPER.readValue(payload, javaType);
         }
         catch (Exception x)
         {
