@@ -17,7 +17,7 @@ public class Tools {
     /**
      * JSON-String parsen
      * @param json ein gültiger JSON String
-     * @return ein JsonNode, aus dem die Werte mittels .get("key") ausgelesen werden können. Für Strings .get("key").asText() benutzen!
+     * @return ein JsonNode, aus dem die Werte mittels .get("key") ausgelesen werden können. Für Strings bitte .get("key").asText() benutzen!
      */
     public static JsonNode parseJSON(String json) {
         try {

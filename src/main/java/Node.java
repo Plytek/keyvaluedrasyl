@@ -18,6 +18,7 @@ public class Node extends DrasylNode
 {
     private Timer timer;
     private boolean isMaster = false;
+    private boolean isConnected = false;
     private String previousMaster;
     private String nextMaster;
     private String coordinator;
@@ -373,6 +374,7 @@ public class Node extends DrasylNode
                     range = new NodeRange(settings.getLow(), settings.getHigh());
 
                     System.out.println(localCluster.toString() + "\n" + isMaster + "\n" + previousMaster + "\n" + nextMaster + "\n" + range.toString() + "\n" + settings.getClusterid());
+                    isConnected = true;
                     break;
                 case "clientrequest":
                     ClientRequest request = (ClientRequest) message;
