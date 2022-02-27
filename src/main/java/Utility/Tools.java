@@ -6,13 +6,11 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.drasyl.node.event.MessageEvent;
-import org.json.simple.parser.JSONParser;
 import java.util.Map;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
 public class Tools {
-    private static JSONParser PARSER = new JSONParser();
     private static ObjectMapper MAPPER = new ObjectMapper();
     private static Map<String, Class> messageTypeClasses = Map.of("clientrequest", ClientRequest.class, "heartbeat", Heartbeat.class, "clientresponse", ClientResponse.class, "settings", Settings.class, "registernode", Message.class, "confirm", Message.class);
 
