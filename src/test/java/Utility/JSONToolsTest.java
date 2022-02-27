@@ -2,13 +2,12 @@ package Utility;
 
 import org.drasyl.identity.DrasylAddress;
 import org.drasyl.node.event.MessageEvent;
-import org.junit.Test;
-import org.junit.runner.JUnitCore;
+import org.testng.annotations.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.testng.AssertJUnit.assertEquals;
 
 public class JSONToolsTest {
 
