@@ -89,7 +89,9 @@ public class ClientNode extends DrasylNode
         System.out.println("Event received: " + event);
         if(event instanceof MessageEvent e)
         {
-            Message message = Tools.getMessageFromEvent(e);
+            Message message = null;
+            message = Tools.getMessageFromEvent(e);
+
             switch (message.getMessageType())
             {
                 case "clientresponse":

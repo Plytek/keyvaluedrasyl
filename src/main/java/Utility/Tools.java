@@ -12,7 +12,8 @@ import java.util.zip.Checksum;
 
 public class Tools {
     private static ObjectMapper MAPPER = new ObjectMapper();
-    private static Map<String, Class> messageTypeClasses = Map.of("clientrequest", ClientRequest.class, "heartbeat", Heartbeat.class, "clientresponse", ClientResponse.class, "settings", Settings.class, "registernode", Message.class, "confirm", Message.class);
+    private static Map<String, Class> messageTypeClasses = Map.of("clientrequest", ClientRequest.class, "heartbeat", Heartbeat.class, "clientresponse", ClientResponse.class, "settings", Settings.class, "registernode", Message.class, "confirm", Message.class,
+            "confirmation", NodeResponse.class, "registerclient", Message.class, "networkonline", NodeResponse.class);
 
     /**
      * JSON-String parsen
@@ -60,7 +61,12 @@ public class Tools {
             String payload = event.getPayload().toString();
             JsonNode j = parseJSON(payload);
             Class javaType = messageTypeClasses.get(j.get("messageType").asText());
-            return (Message) MAPPER.readValue(payload, javaType);
+            try {
+                return (Message) MAPPER.readValue(payload, javaType);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
         }
         catch (Exception x)
         {
