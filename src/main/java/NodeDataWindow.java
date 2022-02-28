@@ -39,6 +39,7 @@ public class NodeDataWindow {
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
+                refreshData();
                 nodesDataTable.repaint();
             }
 
