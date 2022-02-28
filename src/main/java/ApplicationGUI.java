@@ -44,6 +44,15 @@ public class ApplicationGUI {
         StartNodesButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
+                if (coordinator == null && (coordinatorAddress == "" || coordinatorAddress == null))
+                {
+                    int dialogButton = JOptionPane.YES_NO_OPTION;
+                    int dialogResult = JOptionPane.showConfirmDialog(frame, "CoordinatorNode wurde noch nicht erstellt und es wurde keine Addresse angegeben. Soll einer erstellt werden?", "Kein CoordinatorNode", dialogButton);
+                    if(dialogResult == 0) {
+                        createCoordinator();
+                    }
+                    else {return;}
+                }
                 for (Node n : nodes)
                 {
                     coordinator.clearNodes();
@@ -51,6 +60,7 @@ public class ApplicationGUI {
                 }
             }
         });
+
         StopNodesButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
@@ -91,6 +101,10 @@ public class ApplicationGUI {
             public void mouseClicked(MouseEvent e) {
                 int row = NodesTable.rowAtPoint(e.getPoint());
                 int col= NodesTable.columnAtPoint(e.getPoint());
+                if (row < 0)
+                {
+                    return;
+                }
                 if (col == 3)
                 {
                     showMoreWindow(row);
@@ -116,6 +130,11 @@ public class ApplicationGUI {
             }
 
         }, 0, 500);
+    }
+
+    public ApplicationGUI(List<Node> n)
+    {
+        this(n, null);
     }
     public void showMoreWindow(int nodeNr)
     {
@@ -211,7 +230,6 @@ public class ApplicationGUI {
         private JButton ok;
         private JButton abbrechen;
         private JLabel label;
-        private JFrame frame;
 
         public CoordinatorAddressDialog()
         {

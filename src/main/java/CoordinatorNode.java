@@ -14,16 +14,16 @@ import java.util.*;
 @Getter
 @Setter
 public class CoordinatorNode extends DrasylNode {
-    List<String> registerednodes = new ArrayList<>();
+    List<String> registerednodes;
     List<String> mainnodes = new ArrayList<>();
     List<String> clients = new ArrayList<>();
     Map<String, Message> responseWaitMap = new HashMap<>();
-    int maxnodes = 9;
+    private int maxnodes = 9;
     //int range = Integer.MAX_VALUE-1;
-    int range = 9998;
-    int clustersize = 3;
-    int number = 1;
-    boolean isOnline;
+    private int range = 9998;
+    private int clustersize = 3;
+    private int number = 1;
+    private boolean isOnline;
 
     private MessageConfirmer messageConfirmer;
 
@@ -187,11 +187,18 @@ public class CoordinatorNode extends DrasylNode {
         if(event instanceof NodeOnlineEvent)
         {
             System.out.println("Ich bin: " + identity.getAddress().toString());
+            number = 1;
+            registerednodes = new ArrayList<>();
             isOnline = true;
         }
         else if (event instanceof NodeDownEvent)
         {
             isOnline = false;
+            registerednodes.clear();
+            mainnodes.clear();
+            clients.clear();
+            responseWaitMap.clear();
+            messageConfirmer = new MessageConfirmer(this);
         }
     }
 }

@@ -10,6 +10,7 @@ import org.drasyl.node.event.NodeOnlineEvent;
 
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -18,13 +19,17 @@ public class ClientNode extends DrasylNode
     List<String> mainnodes;
     String responsevalue = "";
     String coordinator;
-    boolean networkonline = false;
+    private boolean networkonline = false;
+    MessageConfirmer messageConfirmer;
 
     protected ClientNode() throws DrasylException {
+        messageConfirmer = new MessageConfirmer(this);
     }
+
 
     public ClientNode(DrasylConfig config) throws DrasylException {
         super(config);
+        messageConfirmer = new MessageConfirmer(this);
     }
 
     public void connect(String initialAddresse)
@@ -89,6 +94,25 @@ public class ClientNode extends DrasylNode
     }
     }
 
+    public void sendHeartbeat() {
+        for (String node : mainnodes) {
+            Heartbeat heartbeat = new Heartbeat();
+            heartbeat.setSender(identity.getAddress().toString());
+            heartbeat.setRecipient(node);
+            heartbeat.updateTimestamp();
+            heartbeat.setMessageType("heartbeat");
+            heartbeat.setHeartbeat("clientheartbeat");
+            messageConfirmer.sendMessage(heartbeat, m -> {
+
+            }, m-> {
+                mainnodes.remove(node);
+
+            });
+
+            }
+        }
+
+
     @Override
     public void onEvent(Event event) {
         System.out.println("Event received: " + event);
@@ -113,6 +137,16 @@ public class ClientNode extends DrasylNode
                     responsevalue = "NETWORK ONLINE!";
                     break;
                 }
+                case "noderesponse": {
+                    NodeResponse response = (NodeResponse) message;
+                    for(String address : response.getNodes()) {
+                        if(!mainnodes.contains(address)) {
+                            mainnodes.add(address);
+                            System.out.println(mainnodes);
+                        }
+                    }
+                }
+
                 default:
                 {
                     System.out.println("Hier gibts nix zu sehen");
