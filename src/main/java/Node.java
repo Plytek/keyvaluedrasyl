@@ -251,8 +251,7 @@ public class Node extends DrasylNode
         send(clientResponse.getRecipient(), Tools.getMessageAsJSONString(clientResponse));
     }
 
-    // nicht mit retrys bei confirmation, gehe von erfolg aus
-    // falls confirmation nicht ankommt, so kommt nochmal eine Nachricht
+    // Sende eine Bestätigung auf eine Nachricht
     public void sendConfirmation(String token, String receiver) {
         Message confirmMessage = new Message(
                 "confirm",
@@ -261,10 +260,13 @@ public class Node extends DrasylNode
         );
         confirmMessage.setToken(token);
 
-
         this.send(receiver, Tools.getMessageAsJSONString(confirmMessage));
     }
 
+    // Sende eine Nachricht die von dem Empfänger bestätigt werden muss
+    // Falls keine Bestätigung kommt, gibt es nach 5s einen Timeout und die Nachricht wird erneut gesendet
+    // Nach 3 Timeouts wird aufgegeben -> TODO: Error-Handling in dem Fall
+    // Die automatische Prüfung erfolgt in "startMessageConfirmer" bzw. "checkTimeoutMessage"
     public void sendConfirmedMessage(Message message)
     {
         long currentTime = System.currentTimeMillis();
@@ -279,6 +281,11 @@ public class Node extends DrasylNode
         this.send(message.getRecipient(), Tools.getMessageAsJSONString(message));
     }
 
+
+    // Prüfe ob für eine Nachricht aus confirmMessages ein Timeout besteht
+    // Timeout nach 5 Sekunden
+    // Nach jedem Timeout wird Nachricht erneut gesendet bis zu 3mal
+    // Wenn nach 3 Timeouts nicht erfolgreich -> TODO: Error-Handling
     public void checkTimeoutMessage(String token)
     {
         long currentTime = System.currentTimeMillis();
@@ -291,7 +298,7 @@ public class Node extends DrasylNode
             // timer updaten für ggf nächsten timeout
             message.tickCounter();
             message.updateTimestamp();
-            int timeouts = message.get_counter();
+            int timeouts = message.getCounter();
 
             // maximal 3 Timeouts
             if(timeouts >= 3) {
@@ -299,11 +306,12 @@ public class Node extends DrasylNode
             } else {
                 System.out.println("Timeout Nummer " + timeouts);
                 // erneut zustellen
-                this.send(message.get_recipient(), Tools.getMessageAsJSONString(message));
+                this.send(message.getRecipient(), Tools.getMessageAsJSONString(message));
             }
         }
     }
 
+    // Starte die automatische Prüfung für confirmMessages
     public void startMessageConfirmer(long intervall)
     {
         confirmTimer = new Timer();
@@ -343,6 +351,7 @@ public class Node extends DrasylNode
     public void onEvent(Event event) {
         if(event instanceof MessageEvent messageEvent)
         {
+            System.out.println("messageevent: " + messageEvent);
             String sender = messageEvent.getSender().toString();
 
             Message message = Tools.getMessageFromEvent(messageEvent);
