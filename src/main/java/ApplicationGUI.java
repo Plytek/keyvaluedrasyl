@@ -34,6 +34,11 @@ public class ApplicationGUI {
     private CoordinatorAddressDialog cadrw;
     private ApplicationGUI myself = this;
 
+    /**
+     * Erstellt eine GUI, die mit Nodes und CoordinatorNodes arbeiten kann.
+     * @param n eine Liste an Nodes
+     * @param coord Referenz auf einen Coordinator node. Darf null sein.
+     */
     public ApplicationGUI(List<Node> n, CoordinatorNode coord)
     {
         nodes = n;
@@ -137,11 +142,19 @@ public class ApplicationGUI {
         }, 0, 500);
     }
 
+    /**
+     * Erstellt eine GUI, die mit Nodes und CoordinatorNodes arbeiten kann.
+     * @param n eine Liste an Nodes
+     */
     public ApplicationGUI(List<Node> n)
     {
         this(n, null);
     }
 
+    /**
+     * Erstellt eine GUI, die mit Nodes und CoordinatorNodes arbeiten kann.
+     * Erstellt zuerst ein Fenster, in der die gewünschte Anzahl an Nodes eingegeben werden kann.
+     */
     public ApplicationGUI() {
         CreateNodesWindow cnd = new CreateNodesWindow(this);
     }
@@ -169,12 +182,12 @@ public class ApplicationGUI {
         constructUI();
     }
 
-    public void showMoreWindow(int nodeNr)
+    private void showMoreWindow(int nodeNr)
     {
         optionsWindows.add(new NodeOptionsWindow(nodes.get(nodeNr)));
     }
 
-    public void showDataWindow(int nodeNr)
+    private void showDataWindow(int nodeNr)
     {
         dataWindows.add(new NodeDataWindow(nodes.get(nodeNr)));
     }
@@ -200,7 +213,7 @@ public class ApplicationGUI {
 
     }
 
-    public class NodesTableModel extends AbstractTableModel {
+    protected class NodesTableModel extends AbstractTableModel {
         private final String[] headers = {
                 "Cluster",
                 "Master",
@@ -257,7 +270,7 @@ public class ApplicationGUI {
 
     }
 
-    public class CoordinatorAddressDialog extends JDialog
+    protected class CoordinatorAddressDialog extends JDialog
     {
         private JFormattedTextField addressTextField;
         private JButton ok;
