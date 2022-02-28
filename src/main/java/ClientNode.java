@@ -1,6 +1,7 @@
 import Utility.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.drasyl.node.DrasylConfig;
 import org.drasyl.node.DrasylException;
 import org.drasyl.node.DrasylNode;
 import org.drasyl.node.event.Event;
@@ -20,6 +21,10 @@ public class ClientNode extends DrasylNode
     boolean networkonline = false;
 
     protected ClientNode() throws DrasylException {
+    }
+
+    public ClientNode(DrasylConfig config) throws DrasylException {
+        super(config);
     }
 
     public void connect(String initialAddresse)
