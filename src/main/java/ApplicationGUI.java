@@ -26,15 +26,18 @@ public class ApplicationGUI {
     private List<NodeDataWindow> dataWindows = new LinkedList<>();
     private List<NodeOptionsWindow> optionsWindows = new LinkedList<>();
     private Timer timer;
+    private CoordinatorNode coordinator;
 
-    public ApplicationGUI(List<Node> n)
+    public ApplicationGUI(List<Node> n, CoordinatorNode coord)
     {
         nodes = n;
+        coordinator = coord;
         StartNodesButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 for (Node n : nodes)
                 {
+                    coord.clearNodes();
                     n.start().toCompletableFuture().join();
                 }
             }
@@ -55,11 +58,11 @@ public class ApplicationGUI {
             public void mouseClicked(MouseEvent e) {
                 int row = NodesTable.rowAtPoint(e.getPoint());
                 int col= NodesTable.columnAtPoint(e.getPoint());
-                if (col == 2)
+                if (col == 3)
                 {
                     showMoreWindow(row);
                 }
-                else if (col == 3)
+                else if (col == 4)
                 {
                     showDataWindow(row);
                 }
@@ -96,6 +99,7 @@ public class ApplicationGUI {
         private final String[] headers = {
                 "Cluster",
                 "Master",
+                "Online",
                 "",
                 ""
         };
@@ -118,9 +122,9 @@ public class ApplicationGUI {
                 Object[] v = new Object[5];
                 v[0] = n.getWelchercluster();
                 v[1] = n.isMaster();
-                //v[2] = n.isConnected();
-                v[2] = "mehr...";
-                v[3] = "Daten";
+                v[2] = n.isOnline();
+                v[3] = "mehr...";
+                v[4] = "Daten";
                 values.add(v);
             }
         }
