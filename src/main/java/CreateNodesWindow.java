@@ -13,6 +13,7 @@ public class CreateNodesWindow {
     private JFrame frame;
     private int anzahl;
     private ApplicationGUI gui;
+    private boolean validResult = false;
 
     public CreateNodesWindow(ApplicationGUI gui)
     {
@@ -32,7 +33,7 @@ public class CreateNodesWindow {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 anzahl = getIntegerFromField();
-                if (anzahl != 0)
+                if (validResult)
                 {
                     gui.recieveCreateDialogResults(anzahl, coordinatorNodeErstellenCheckBox.isSelected());
                     frame.dispose();
@@ -50,7 +51,9 @@ public class CreateNodesWindow {
     {
         try
         {
-            return Integer.parseInt(formattedTextField1.getText());
+            int i =  Math.abs(Integer.parseInt(formattedTextField1.getText()));
+            validResult = true;
+            return i;
         }
         catch (NumberFormatException e)
         {
