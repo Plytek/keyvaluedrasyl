@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.function.Consumer;
 
 // Sorgt für die Zustellung von Messages mit Bestätigungen(confirm) für eine DrasylNode
 // Falls keine Bestätigung kommt, wird nach 5s ein Timeout ausgelöst
@@ -16,7 +17,9 @@ public class MessageConfirmer {
     private DrasylNode node;
 
     // Map von Token zu Messages, bei denen noch auf ein Confirm gewartet wird
-    private Map<String, Message> messages;
+    private Map<String, Message> messages = new HashMap<>();
+    private Map<String, Consumer<Message>> onSuccesses = new HashMap<>();
+    private Map<String, Consumer<Message>> onErrors = new HashMap<>();
 
     // Timer für die automatische Durchführung
     private Timer timer;
@@ -24,8 +27,6 @@ public class MessageConfirmer {
     // Starte den MessageConfirmer für die eigene Adresse
     public MessageConfirmer(DrasylNode node) {
         this.node = node;
-        messages = new HashMap<>();
-
         // timer für jede Sekunde
         timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
@@ -42,13 +43,15 @@ public class MessageConfirmer {
     // Falls keine Bestätigung kommt, gibt es nach 5s einen Timeout und die Nachricht wird erneut gesendet
     // Nach 3 Timeouts wird aufgegeben
     // Die automatische Prüfung erfolgt in "startMessageConfirmer" bzw. "checkTimeoutMessage"
-    public void sendMessage(Message message)
+    public void sendMessage(Message message, Consumer<Message> onSuccess, Consumer<Message> onError)
     {
         long currentTime = System.currentTimeMillis();
         message.setSender(node.identity().getAddress().toString());
         message.setTime(currentTime);
         message.setConfirmRequested(true);
         messages.put(message.getToken(), message);
+        onSuccesses.put(message.getToken(), onSuccess);
+        onErrors.put(message.getToken(), onError);
         node.send(message.getRecipient(), Tools.getMessageAsJSONString(message));
     }
 
@@ -60,13 +63,17 @@ public class MessageConfirmer {
             // Entferne Nachricht aus Behälter, falls confirm eingetroffen
             if(messages.containsKey(token))
             {
-                messages.remove(message.token);
+                onSuccesses.get(token).accept(messages.get(message.token));
+
+                messages.remove(token);
+                onSuccesses.remove(token);
+                onErrors.remove(token);
             }
 
             // Sende Confirmation, falls angefordert
             if(message.isConfirmRequested())
             {
-                sendConfirmation(message.token, message.getSender());
+                sendConfirmation(token, message.getSender());
             }
     }
 
@@ -106,9 +113,14 @@ public class MessageConfirmer {
 
             // maximal 3 Timeouts
             if(timeouts >= 3) {
-                System.out.println("TODO: Dreimal Timeout bei Message Delivery!");
+                System.out.println("Dreimal Timeout bei Message Delivery -> onError wird aufgerufen!");
+                onErrors.get(token).accept(message);
+
+                messages.remove(token);
+                onSuccesses.remove(token);
+                onErrors.remove(token);
             } else {
-                System.out.println("Timeout Nummer " + timeouts);
+                System.out.println("Timeout Nummer " + timeouts + " für token = " + token);
                 // erneut zustellen
                 node.send(message.getRecipient(), Tools.getMessageAsJSONString(message));
             }

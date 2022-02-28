@@ -48,7 +48,10 @@ public class CoordinatorNode extends DrasylNode {
             {
                 responseWaitMap.put(settings.getToken(), settings);
 
-                messageConfirmer.sendMessage(settings);
+                messageConfirmer.sendMessage(settings,
+                        (Message m) -> System.out.println("settings: onSuccess!!"),
+                        (Message m) -> System.out.println("settings: onError!!!")
+                );
                 //send(settings.getIdentity(), Tools.getMessageAsJSONString(settings));
 
 
