@@ -27,6 +27,7 @@ public class ApplicationGUI {
     private List<NodeOptionsWindow> optionsWindows = new LinkedList<>();
     private Timer timer;
     private CoordinatorNode coordinator;
+    private String coordinatorAddress;
     private CoordinatorNodeWindow corw;
     private CoordinatorAddressDialog cadrw;
     private ApplicationGUI myself;
@@ -36,6 +37,10 @@ public class ApplicationGUI {
         myself = this;
         nodes = n;
         coordinator = coord;
+        if (coordinator != null)
+        {
+            coordinatorAddress = coordinator.identity().getAddress().toString();
+        }
         StartNodesButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
@@ -126,18 +131,19 @@ public class ApplicationGUI {
     {
         try {
             coordinator = new CoordinatorNode();
-            setCoordinatorAddressInNodes(coordinator.identity().getAddress().toString());
+            coordinatorAddress = coordinator.identity().getAddress().toString();
+            setCoordinatorAddressInNodes();
         } catch (DrasylException e) {
             e.printStackTrace();
         }
 
     }
 
-    private void setCoordinatorAddressInNodes(String address)
+    private void setCoordinatorAddressInNodes()
     {
         for (Node n : nodes)
         {
-            n.setCoordinator(address);
+            n.setCoordinator(coordinatorAddress);
         }
 
     }
@@ -212,18 +218,13 @@ public class ApplicationGUI {
             super(new JFrame("CoordinatorNode Addresse"), "CoordinatorNode Addresse");
             label = new JLabel("Addresse:");
             addressTextField = new JFormattedTextField();
-            try {
-                addressTextField.setText(coordinator.identity().getAddress().toString());
-            }
-            catch (NullPointerException e)
-            {
-                addressTextField.setText("");
-            }
+            addressTextField.setText(coordinatorAddress);
             ok = new JButton("Ok");
             ok.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent actionEvent) {
-                    setCoordinatorAddressInNodes(addressTextField.getText());
+                    coordinatorAddress = addressTextField.getText();
+                    setCoordinatorAddressInNodes();
                     dispose();
                 }
             });
