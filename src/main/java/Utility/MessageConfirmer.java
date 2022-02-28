@@ -66,7 +66,7 @@ public class MessageConfirmer {
             // Sende Confirmation, falls angefordert
             if(message.isConfirmRequested())
             {
-                sendConfirmation(message.token, message.getRecipient());
+                sendConfirmation(message.token, message.getSender());
             }
     }
 
