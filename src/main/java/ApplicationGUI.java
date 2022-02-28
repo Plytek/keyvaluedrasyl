@@ -1,4 +1,5 @@
 import lombok.Setter;
+import org.drasyl.node.DrasylConfig;
 import org.drasyl.node.DrasylException;
 
 import javax.swing.*;
@@ -8,6 +9,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.nio.file.Path;
+import java.text.NumberFormat;
 import java.util.*;
 import java.util.List;
 import java.util.Timer;
@@ -30,13 +33,17 @@ public class ApplicationGUI {
     private String coordinatorAddress;
     private CoordinatorNodeWindow corw;
     private CoordinatorAddressDialog cadrw;
-    private ApplicationGUI myself;
+    private ApplicationGUI myself = this;
 
     public ApplicationGUI(List<Node> n, CoordinatorNode coord)
     {
-        myself = this;
         nodes = n;
         coordinator = coord;
+        constructUI();
+    }
+
+    private void constructUI()
+    {
         if (coordinator != null)
         {
             coordinatorAddress = coordinator.identity().getAddress().toString();
@@ -55,7 +62,6 @@ public class ApplicationGUI {
                 }
                 for (Node n : nodes)
                 {
-                    coordinator.clearNodes();
                     n.start().toCompletableFuture().join();
                 }
             }
@@ -136,6 +142,30 @@ public class ApplicationGUI {
     {
         this(n, null);
     }
+
+    public ApplicationGUI() {
+        CreateNodesWindow cnd = new CreateNodesWindow(this);
+    }
+
+    public void setNodecountFromUI(int n)
+    {
+        nodes = new ArrayList<>();
+        DrasylConfig config;
+        for (int i = 0; i < n; i++)
+        {
+            try {
+                config = DrasylConfig.newBuilder().identityPath(Path.of(i + ".identity")).build();
+                nodes.add(new Node(config));
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(frame, "Das Erstellen von Node " + i + " ist fehlgeschlagen.");
+            }
+        }
+        constructUI();
+    }
+
     public void showMoreWindow(int nodeNr)
     {
         optionsWindows.add(new NodeOptionsWindow(nodes.get(nodeNr)));
