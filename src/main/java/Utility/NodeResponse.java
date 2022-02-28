@@ -11,4 +11,8 @@ public class NodeResponse extends Message{
     private long checksum;
     private boolean needsResponse = false;
     private List<String> nodes;
+
+    public NodeResponse() {
+        messageType = "noderesponse";
+    }
 }
