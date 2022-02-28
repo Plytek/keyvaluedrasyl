@@ -1,7 +1,4 @@
-import Utility.Message;
-import Utility.NodeResponse;
-import Utility.Settings;
-import Utility.Tools;
+import Utility.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.drasyl.identity.DrasylAddress;
@@ -27,11 +24,15 @@ public class CoordinatorNode extends DrasylNode {
     int clustersize = 3;
     int number = 1;
 
+    MessageConfirmer messageConfirmer;
+
     protected CoordinatorNode(DrasylConfig config) throws DrasylException {
         super(config);
+        messageConfirmer = new MessageConfirmer(this);
     }
 
     protected CoordinatorNode() throws DrasylException {
+        messageConfirmer = new MessageConfirmer(this);
     }
 
     private void registerProcess(Message message)
@@ -45,7 +46,11 @@ public class CoordinatorNode extends DrasylNode {
             for(Settings settings : settingsList)
             {
                 responseWaitMap.put(settings.getToken(), settings);
-                send(settings.getIdentity(), Tools.getMessageAsJSONString(settings));
+
+                messageConfirmer.sendMessage(settings);
+                //send(settings.getIdentity(), Tools.getMessageAsJSONString(settings));
+
+
                 try {
                     Thread.sleep(100);
                 } catch (InterruptedException e) {
@@ -156,11 +161,10 @@ public class CoordinatorNode extends DrasylNode {
                     clients.add(message.getSender());
                     break;
                 }
-                case "settings":
+                case "confirm":
                 {
-                    Settings response = (Settings) message;
-                    send(response.getRecipient(), Tools.getMessageAsJSONString(response));
-                    responseWaitMap.remove(response.getToken());
+                    //send(response.getRecipient(), Tools.getMessageAsJSONString(response));
+                    responseWaitMap.remove(message.getToken());
                     if(responseWaitMap.size() == 0)
                     {
                         notifyClients();
