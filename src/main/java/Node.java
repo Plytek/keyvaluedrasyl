@@ -16,7 +16,7 @@ import java.util.*;
 @Setter
 public class Node extends DrasylNode
 {
-    private Timer timer;
+    private Timer timer = new Timer();
     private boolean isMaster = false;
     private String previousMaster;
     private String nextMaster;
@@ -26,7 +26,6 @@ public class Node extends DrasylNode
     private int welchercluster;
     private int hashrange;
 
-    private Timer scheduler = new Timer();
     private Map<Integer, Map<String,String>> datastorage = new HashMap<>();
     private MessageConfirmer messageConfirmer;
 
@@ -52,25 +51,28 @@ public class Node extends DrasylNode
     }
 
     public void sendHeartbeat(long intervall) {
-        timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 Heartbeat heartbeat = new Heartbeat();
                 for(int i = 0; i < localCluster.size(); i++)
                 {
-                    DrasylAddress currentnode = (DrasylAddress) localCluster.keySet().toArray()[i];
+                    String currentnode = (String) localCluster.keySet().toArray()[i];
                     boolean isMaster = localCluster.get(currentnode);
-                    if(isMaster && !identity().getAddress().equals(currentnode))
+                    heartbeat.setSender(identity.getAddress().toString());
+                    heartbeat.setRecipient(currentnode);
+                    heartbeat.updateTimestamp();
+
+                    if(isMaster && !identity().getAddress().toString().equals(currentnode))
                     {
                         heartbeat.setHeartbeat("masterheartbeat");
-                        heartbeat.updateTimestamp();
+                        heartbeat.setBemerkung("Von Master an Secondary");
                         send(currentnode, Tools.getMessageAsJSONString(heartbeat));
                     }
-                    else if(!isMaster && !identity().getAddress().equals(currentnode))
+                    else if(!isMaster && !identity().getAddress().toString().equals(currentnode))
                     {
                         heartbeat.setHeartbeat("secondaryheartbeat");
-                        heartbeat.updateTimestamp();
+                        heartbeat.setBemerkung("Von Secondary an Master");
                         send(currentnode, Tools.getMessageAsJSONString(heartbeat));
                     }
                 }
@@ -78,6 +80,7 @@ public class Node extends DrasylNode
                 {
                     heartbeat.setHeartbeat("masterheartbeat");
                     heartbeat.updateTimestamp();
+                    heartbeat.setBemerkung("Von Cluster " + welchercluster + " an andere Master");
                     send(previousMaster, Tools.getMessageAsJSONString(heartbeat));
                     send(nextMaster, Tools.getMessageAsJSONString(heartbeat));
                 }
@@ -254,32 +257,6 @@ public class Node extends DrasylNode
 
 
 
-
-
-
-    /*
-    private void confirmActivation(Message message)
-    {
-        Message savedmessage = confirmMessages.get(message.getToken());
-        if(!message.isConfirmed())
-        {
-            scheduler.scheduleAtFixedRate(new TimerTask() {
-                @Override
-                public void run() {
-                    message.setConfirmed(true);
-                    send(message.getSender(), Tools.getMessageAsJSONString(message));
-                }
-            }, 0, 3000);
-        }
-        else
-        {
-            scheduler.cancel();
-            confirmMessages.remove(message.getToken());
-        }
-    }
-     */
-
-
     @Override
     public void onEvent(Event event) {
         if(event instanceof MessageEvent messageEvent)
@@ -296,7 +273,8 @@ public class Node extends DrasylNode
             switch(messageType)
             {
                 case "heartbeat":
-                    System.out.println("heartbeat");
+                    Heartbeat heartbeat = (Heartbeat) message;
+                    System.out.println("Heartbeat: " + heartbeat.getBemerkung());
                     break;
                 case "confirmation":
                     System.out.println("confirmation");
@@ -304,8 +282,6 @@ public class Node extends DrasylNode
                 case "settings":
                     Settings settings = (Settings) message;
 
-                    if(!settings.isConfirmed())
-                    {
                         isMaster = settings.isMaster();
                         List<String> cluster = settings.getLocalcluster();
                         if(localCluster == null) localCluster = new HashMap<>();
@@ -321,10 +297,9 @@ public class Node extends DrasylNode
                         welchercluster = settings.getClusterid();
                         range = new NodeRange(settings.getLow(), settings.getHigh());
                         hashrange = settings.getHashrange();
-                        //confirmMessages.put(settings.getToken(), settings);
+
+                        sendHeartbeat(5000);
                         System.out.println(localCluster.toString() + "\n" + isMaster + "\n" + previousMaster + "\n" + nextMaster + "\n" + range.toString() + "\n" + settings.getClusterid());
-                    }
-                    //confirmActivation(settings);
                     break;
                 case "clientrequest":
                     ClientRequest request = (ClientRequest) message;

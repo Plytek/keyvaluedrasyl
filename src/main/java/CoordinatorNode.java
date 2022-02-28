@@ -1,7 +1,6 @@
 import Utility.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.drasyl.identity.DrasylAddress;
 import org.drasyl.node.DrasylConfig;
 import org.drasyl.node.DrasylException;
 import org.drasyl.node.DrasylNode;
@@ -24,7 +23,7 @@ public class CoordinatorNode extends DrasylNode {
     int clustersize = 3;
     int number = 1;
 
-    MessageConfirmer messageConfirmer;
+    private MessageConfirmer messageConfirmer;
 
     protected CoordinatorNode(DrasylConfig config) throws DrasylException {
         super(config);
@@ -164,7 +163,6 @@ public class CoordinatorNode extends DrasylNode {
                 }
                 case "confirm":
                 {
-                    //send(response.getRecipient(), Tools.getMessageAsJSONString(response));
                     responseWaitMap.remove(message.getToken());
                     if(responseWaitMap.size() == 0)
                     {
