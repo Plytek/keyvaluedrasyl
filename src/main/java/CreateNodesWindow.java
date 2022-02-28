@@ -41,7 +41,7 @@ public class CreateNodesWindow {
         });
         frame = new JFrame("Nodes erstellen");
         frame.setContentPane(panel);
-        frame.setSize(300, 200);
+        frame.setSize(400, 200);
         frame.setVisible(true);
     }
 
