@@ -30,6 +30,7 @@ public class Node extends DrasylNode
     private Timer confirmTimer;
     private Map<String, Message> confirmMessages = new HashMap<>();
 
+
     private Map<Integer, Map<String,String>> datastorage = new HashMap<>();
 
     protected Node(DrasylConfig config) throws DrasylException {
@@ -315,19 +316,22 @@ public class Node extends DrasylNode
 
     private void confirmActivation(Message message)
     {
-        NodeResponse nodeResponse = new NodeResponse();
-        nodeResponse.setMessageType("confirmation");
-        nodeResponse.setBemerkung("Settings eingerichtet");
-        nodeResponse.setToken(message.getToken());
-        nodeResponse.setRecipient(message.getSender());
-        nodeResponse.setSender(identity().getAddress().toString());
-
-        Random rand = new Random();
-        try {
-            Thread.sleep(rand.nextInt(1000));
-            send(nodeResponse.getRecipient(), Tools.getMessageAsJSONString(nodeResponse));
-        } catch (Exception e) {
-            e.printStackTrace();
+        Timer scheduler = new Timer();
+        Message savedmessage = confirmMessages.get(message.getToken());
+        if(!message.isConfirmed())
+        {
+            scheduler.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    message.setConfirmed(true);
+                    send(message.getSender(), Tools.getMessageAsJSONString(message));
+                }
+            }, 0, 3000);
+        }
+        else
+        {
+            scheduler.cancel();
+            confirmMessages.remove(message.getToken());
         }
     }
 
@@ -363,25 +367,28 @@ public class Node extends DrasylNode
                     break;
                 case "settings":
                     Settings settings = (Settings) message;
-                    isMaster = settings.isMaster();
-                    List<String> cluster = settings.getLocalcluster();
-                    if(localCluster == null) localCluster = new HashMap<>();
-                    for(int i = 0; i < cluster.size(); i++)
+
+                    if(!settings.isConfirmed())
                     {
-                        boolean master;
-                        if(i == 0) master = true;
-                        else master = false;
-                        localCluster.put(cluster.get(i), master);
+                        isMaster = settings.isMaster();
+                        List<String> cluster = settings.getLocalcluster();
+                        if(localCluster == null) localCluster = new HashMap<>();
+                        for(int i = 0; i < cluster.size(); i++)
+                        {
+                            boolean master;
+                            if(i == 0) master = true;
+                            else master = false;
+                            localCluster.put(cluster.get(i), master);
+                        }
+                        previousMaster = settings.getPreviousmaster();
+                        nextMaster = settings.getNextmaster();
+                        welchercluster = settings.getClusterid();
+                        range = new NodeRange(settings.getLow(), settings.getHigh());
+                        hashrange = settings.getHashrange();
+                        confirmMessages.put(settings.getToken(), settings);
+                        System.out.println(localCluster.toString() + "\n" + isMaster + "\n" + previousMaster + "\n" + nextMaster + "\n" + range.toString() + "\n" + settings.getClusterid());
                     }
-                    previousMaster = settings.getPreviousmaster();
-                    nextMaster = settings.getNextmaster();
-                    welchercluster = settings.getClusterid();
-                    range = new NodeRange(settings.getLow(), settings.getHigh());
-                    hashrange = settings.getHashrange();
-
                     confirmActivation(settings);
-
-                    System.out.println(localCluster.toString() + "\n" + isMaster + "\n" + previousMaster + "\n" + nextMaster + "\n" + range.toString() + "\n" + settings.getClusterid());
                     break;
                 case "clientrequest":
                     ClientRequest request = (ClientRequest) message;

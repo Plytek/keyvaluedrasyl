@@ -156,13 +156,12 @@ public class CoordinatorNode extends DrasylNode {
                     clients.add(message.getSender());
                     break;
                 }
-                case "confirmation":
+                case "settings":
                 {
-                    //System.out.println("Waitlist vorher: " + responseWaitMap);
-                    NodeResponse response = (NodeResponse) message;
+                    Settings response = (Settings) message;
+                    send(response.getRecipient(), Tools.getMessageAsJSONString(response));
                     responseWaitMap.remove(response.getToken());
-                    //System.out.println("Waitlist nachhher: " + responseWaitMap);
-                    if(responseWaitMap.size() == 5)
+                    if(responseWaitMap.size() == 0)
                     {
                         notifyClients();
                     }
