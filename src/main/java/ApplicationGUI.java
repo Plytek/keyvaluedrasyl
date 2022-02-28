@@ -1,4 +1,7 @@
+import Utility.Heartbeat;
+import Utility.Tools;
 import lombok.Setter;
+import org.drasyl.identity.DrasylAddress;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
@@ -9,6 +12,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.*;
 import java.util.List;
+import java.util.Timer;
 
 @Setter
 public class ApplicationGUI {
@@ -16,12 +20,12 @@ public class ApplicationGUI {
     private JPanel NodesWindow;
     private JButton StartNodesButton;
     private JButton StopNodesButton;
-    private JButton RefreshButton;
     private List<Node> nodes;
     private NodesTableModel tableModel;
     private JFrame frame;
     private List<NodeDataWindow> dataWindows = new LinkedList<>();
     private List<NodeOptionsWindow> optionsWindows = new LinkedList<>();
+    private Timer timer;
 
     public ApplicationGUI(List<Node> n)
     {
@@ -42,13 +46,6 @@ public class ApplicationGUI {
                 {
                     n.shutdown().toCompletableFuture().join();
                 }
-            }
-        });
-        RefreshButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                tableModel.fireTableDataChanged();
-                NodesTable.repaint();
             }
         });
         tableModel = new NodesTableModel();
@@ -74,6 +71,15 @@ public class ApplicationGUI {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(800, 600);
         frame.setVisible(true);
+        timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                tableModel.fireTableDataChanged();
+                NodesTable.repaint();
+            }
+
+        }, 0, 500);
     }
     public void showMoreWindow(int nodeNr)
     {

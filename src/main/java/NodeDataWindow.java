@@ -4,6 +4,8 @@ import javax.swing.table.TableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class NodeDataWindow {
     private JTable nodesDataTable;
@@ -14,6 +16,7 @@ public class NodeDataWindow {
     TableModel tableModel;
     JFrame frame;
     NodeOptionsWindow w;
+    private Timer timer;
 
     public NodeDataWindow(Node n)
     {
@@ -32,6 +35,14 @@ public class NodeDataWindow {
         frame.setContentPane(panel1);
         frame.setSize(600, 400);
         frame.setVisible(true);
+        timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                nodesDataTable.repaint();
+            }
+
+        }, 0, 500);
     }
 
     private void refreshData()
