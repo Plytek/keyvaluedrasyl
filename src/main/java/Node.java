@@ -16,7 +16,7 @@ import java.util.*;
 @Setter
 public class Node extends DrasylNode
 {
-    private Timer timer;
+    private Timer timer = new Timer();
     private boolean isMaster = false;
     private String previousMaster;
     private String nextMaster;
@@ -26,20 +26,19 @@ public class Node extends DrasylNode
     private int welchercluster;
     private int hashrange;
 
-
-    private Timer confirmTimer;
-    Timer scheduler = new Timer();
-    private Map<String, Message> confirmMessages = new HashMap<>();
-
-
     private Map<Integer, Map<String,String>> datastorage = new HashMap<>();
+    private MessageConfirmer messageConfirmer;
 
     protected Node(DrasylConfig config) throws DrasylException {
         super(config);
+
+        messageConfirmer = new MessageConfirmer(this);
     }
 
     public Node() throws DrasylException {
         super();
+
+        messageConfirmer = new MessageConfirmer(this);
     }
 
     public void registriereNodes()
@@ -52,25 +51,28 @@ public class Node extends DrasylNode
     }
 
     public void sendHeartbeat(long intervall) {
-        timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 Heartbeat heartbeat = new Heartbeat();
                 for(int i = 0; i < localCluster.size(); i++)
                 {
-                    DrasylAddress currentnode = (DrasylAddress) localCluster.keySet().toArray()[i];
+                    String currentnode = (String) localCluster.keySet().toArray()[i];
                     boolean isMaster = localCluster.get(currentnode);
-                    if(isMaster && !identity().getAddress().equals(currentnode))
+                    heartbeat.setSender(identity.getAddress().toString());
+                    heartbeat.setRecipient(currentnode);
+                    heartbeat.updateTimestamp();
+
+                    if(isMaster && !identity().getAddress().toString().equals(currentnode))
                     {
                         heartbeat.setHeartbeat("masterheartbeat");
-                        heartbeat.updateTimestamp();
+                        heartbeat.setBemerkung("Von Master an Secondary");
                         send(currentnode, Tools.getMessageAsJSONString(heartbeat));
                     }
-                    else if(!isMaster && !identity().getAddress().equals(currentnode))
+                    else if(!isMaster && !identity().getAddress().toString().equals(currentnode))
                     {
                         heartbeat.setHeartbeat("secondaryheartbeat");
-                        heartbeat.updateTimestamp();
+                        heartbeat.setBemerkung("Von Secondary an Master");
                         send(currentnode, Tools.getMessageAsJSONString(heartbeat));
                     }
                 }
@@ -78,10 +80,11 @@ public class Node extends DrasylNode
                 {
                     heartbeat.setHeartbeat("masterheartbeat");
                     heartbeat.updateTimestamp();
+                    heartbeat.setBemerkung("Von Cluster " + welchercluster + " an andere Master");
                     send(previousMaster, Tools.getMessageAsJSONString(heartbeat));
                     send(nextMaster, Tools.getMessageAsJSONString(heartbeat));
                 }
-                }
+            }
 
         }, 0, intervall);
     }
@@ -251,100 +254,7 @@ public class Node extends DrasylNode
         send(clientResponse.getRecipient(), Tools.getMessageAsJSONString(clientResponse));
     }
 
-    // Sende eine Bestätigung auf eine Nachricht
-    public void sendConfirmation(String token, String receiver) {
-        Message confirmMessage = new Message(
-                "confirm",
-                this.identity.toString(),
-                receiver
-        );
-        confirmMessage.setToken(token);
 
-        this.send(receiver, Tools.getMessageAsJSONString(confirmMessage));
-    }
-
-    // Sende eine Nachricht die von dem Empfänger bestätigt werden muss
-    // Falls keine Bestätigung kommt, gibt es nach 5s einen Timeout und die Nachricht wird erneut gesendet
-    // Nach 3 Timeouts wird aufgegeben -> TODO: Error-Handling in dem Fall
-    // Die automatische Prüfung erfolgt in "startMessageConfirmer" bzw. "checkTimeoutMessage"
-    public void sendConfirmedMessage(Message message)
-    {
-        long currentTime = System.currentTimeMillis();
-        message.setTime(currentTime);
-        confirmMessages.put(message.getToken(), message);
-        if(confirmTimer == null)
-        {
-            // start MessageConfirmer, falls noch nicht aktiv
-            startMessageConfirmer(1000);
-        }
-
-        this.send(message.getRecipient(), Tools.getMessageAsJSONString(message));
-    }
-
-
-    // Prüfe ob für eine Nachricht aus confirmMessages ein Timeout besteht
-    // Timeout nach 5 Sekunden
-    // Nach jedem Timeout wird Nachricht erneut gesendet bis zu 3mal
-    // Wenn nach 3 Timeouts nicht erfolgreich -> TODO: Error-Handling
-    public void checkTimeoutMessage(String token)
-    {
-        long currentTime = System.currentTimeMillis();
-        Message message = confirmMessages.get(token);
-
-        // nur handeln falls timeout  nach 5 Sekunden
-        if(currentTime - message.getTime() > 5000)
-        {
-            // counter zählt wie oft bisher timeout aufgetaucht -> jetzt einmal mehr als counter
-            // timer updaten für ggf nächsten timeout
-            message.tickCounter();
-            message.updateTimestamp();
-            int timeouts = message.getCounter();
-
-            // maximal 3 Timeouts
-            if(timeouts >= 3) {
-                System.out.println("TODO: Dreimal Timeout bei Message Delivery!");
-            } else {
-                System.out.println("Timeout Nummer " + timeouts);
-                // erneut zustellen
-                this.send(message.getRecipient(), Tools.getMessageAsJSONString(message));
-            }
-        }
-    }
-
-    // Starte die automatische Prüfung für confirmMessages
-    public void startMessageConfirmer(long intervall)
-    {
-        confirmTimer = new Timer();
-        confirmTimer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                for(String token : confirmMessages.keySet()) {
-                    checkTimeoutMessage(token);
-                }
-            }
-
-        }, 0, intervall);
-    }
-
-    private void confirmActivation(Message message)
-    {
-        Message savedmessage = confirmMessages.get(message.getToken());
-        if(!message.isConfirmed())
-        {
-            scheduler.scheduleAtFixedRate(new TimerTask() {
-                @Override
-                public void run() {
-                    message.setConfirmed(true);
-                    send(message.getSender(), Tools.getMessageAsJSONString(message));
-                }
-            }, 0, 3000);
-        }
-        else
-        {
-            scheduler.cancel();
-            confirmMessages.remove(message.getToken());
-        }
-    }
 
 
     @Override
@@ -353,26 +263,18 @@ public class Node extends DrasylNode
         {
             System.out.println("messageevent: " + messageEvent);
             String sender = messageEvent.getSender().toString();
-
             Message message = Tools.getMessageFromEvent(messageEvent);
-
             String messageType = message.getMessageType();
 
-            String token = message.getToken();
-            if(confirmMessages.containsKey(token))
-            {
-                // falls confirmation auf gesendete Message, so entferne aus confirm-Queue
-                confirmMessages.remove(token);
-            }
-            else {
-                // ansonsten sende selber confirmation
-                //sendConfirmation(token, sender);
-            }
+            // Lasse MessageConfirmer wissen, dass Nachricht eingetroffen
+            // Ansonsten weiß MessageConfirmer nicht, ob Nachrichten bestätigt wurden!
+            messageConfirmer.receiveMessage(message);
 
             switch(messageType)
             {
                 case "heartbeat":
-                    System.out.println("heartbeat");
+                    Heartbeat heartbeat = (Heartbeat) message;
+                    System.out.println("Heartbeat: " + heartbeat.getBemerkung());
                     break;
                 case "confirmation":
                     System.out.println("confirmation");
@@ -380,8 +282,6 @@ public class Node extends DrasylNode
                 case "settings":
                     Settings settings = (Settings) message;
 
-                    if(!settings.isConfirmed())
-                    {
                         isMaster = settings.isMaster();
                         List<String> cluster = settings.getLocalcluster();
                         if(localCluster == null) localCluster = new HashMap<>();
@@ -397,10 +297,9 @@ public class Node extends DrasylNode
                         welchercluster = settings.getClusterid();
                         range = new NodeRange(settings.getLow(), settings.getHigh());
                         hashrange = settings.getHashrange();
-                        confirmMessages.put(settings.getToken(), settings);
+
+                        sendHeartbeat(5000);
                         System.out.println(localCluster.toString() + "\n" + isMaster + "\n" + previousMaster + "\n" + nextMaster + "\n" + range.toString() + "\n" + settings.getClusterid());
-                    }
-                    confirmActivation(settings);
                     break;
                 case "clientrequest":
                     ClientRequest request = (ClientRequest) message;
