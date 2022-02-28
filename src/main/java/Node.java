@@ -5,10 +5,7 @@ import org.drasyl.identity.DrasylAddress;
 import org.drasyl.node.DrasylConfig;
 import org.drasyl.node.DrasylException;
 import org.drasyl.node.DrasylNode;
-import org.drasyl.node.event.Event;
-import org.drasyl.node.event.MessageEvent;
-import org.drasyl.node.event.NodeOfflineEvent;
-import org.drasyl.node.event.NodeOnlineEvent;
+import org.drasyl.node.event.*;
 
 import java.util.*;
 
@@ -25,6 +22,7 @@ public class Node extends DrasylNode
     private Map<String, Boolean> localCluster;
     private int welchercluster;
     private int hashrange;
+    private boolean isOnline;
 
     private Map<Integer, Map<String,String>> datastorage = new HashMap<>();
     private MessageConfirmer messageConfirmer;
@@ -320,10 +318,16 @@ public class Node extends DrasylNode
                 message.setSender(identity.getAddress().toString());
                 message.setRecipient(coordinator);
                 send(coordinator, Tools.getMessageAsJSONString(message));
+                isOnline = true;
             }
             else if(event instanceof NodeOfflineEvent)
             {
                 System.out.println("NodeOfflineEvent");
+
+            }
+            else if (event instanceof NodeDownEvent)
+            {
+                isOnline = false;
             }
             else
             {

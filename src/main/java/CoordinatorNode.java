@@ -142,6 +142,11 @@ public class CoordinatorNode extends DrasylNode {
         return settingsList;
     }
 
+    public void clearNodes()
+    {
+        registerednodes.clear();
+    }
+
     @Override
     public void onEvent(Event event) {
         if(event instanceof MessageEvent msgevent)
