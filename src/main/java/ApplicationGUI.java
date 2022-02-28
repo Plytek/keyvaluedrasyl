@@ -163,10 +163,6 @@ public class ApplicationGUI {
     {
         nodes = new ArrayList<>();
         DrasylConfig config;
-        if (b)
-        {
-            createCoordinator();
-        }
         for (int i = 0; i < n; i++)
         {
             try {
@@ -178,6 +174,10 @@ public class ApplicationGUI {
                 e.printStackTrace();
                 JOptionPane.showMessageDialog(frame, "Das Erstellen von Node " + i + " ist fehlgeschlagen.");
             }
+        }
+        if (b)
+        {
+            createCoordinator();
         }
         constructUI();
     }
