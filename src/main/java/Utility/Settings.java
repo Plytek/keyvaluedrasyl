@@ -17,6 +17,7 @@ public class Settings extends Message
     private List<String> localcluster;
     private String previousmaster;
     private String nextmaster;
+    private int hashrange;
     private int clusterid;
 
 

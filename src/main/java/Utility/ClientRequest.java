@@ -13,6 +13,7 @@ public class ClientRequest extends Message{
     private String affectedKey;
     private String value;
 
+
     public ClientRequest() {
     }
 

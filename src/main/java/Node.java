@@ -23,11 +23,14 @@ public class Node extends DrasylNode
     private String coordinator;
     private NodeRange range;
     private Map<String, Boolean> localCluster;
+    private int welchercluster;
+    private int hashrange;
+
 
     private Timer confirmTimer;
     private Map<String, Message> confirmMessages = new HashMap<>();
 
-    private Map<Integer, Map<String,String>> datastorage;
+    private Map<Integer, Map<String,String>> datastorage = new HashMap<>();
 
     protected Node(DrasylConfig config) throws DrasylException {
         super(config);
@@ -42,21 +45,7 @@ public class Node extends DrasylNode
 
     }
 
-    public void anfrageVerteilen(ClientRequest clientRequest)
-    {
-        //Muss eventuell noch modifziert werden wenn zB next master Range 0-X hat nach 6666-10000
-        int verteilerhash = clientRequest.hashCode();
-        if(verteilerhash < range.getLow())
-        {
-            send(previousMaster, Tools.getMessageAsJSONString(clientRequest));
-        }
-        else if(verteilerhash > range.getHigh())
-        {
-            send(nextMaster, Tools.getMessageAsJSONString(clientRequest));
-        }
-    }
-
-    public String getAddress() {
+     public String getAddress() {
         return this.identity().getAddress().toString();
     }
 
@@ -123,6 +112,7 @@ public class Node extends DrasylNode
                     String adresse = (String) localCluster.keySet().toArray()[i];
                     if(!localCluster.get(adresse))
                     {
+                        clientRequest.setBemerkung("Von " + welchercluster + " an secondary gesendet");
                         send(adresse, Tools.getMessageAsJSONString(clientRequest));
                     }
                 }
@@ -130,40 +120,122 @@ public class Node extends DrasylNode
             switch (clientRequest.getRequestType()){
                 case "create":
                 {
-                    handleCreate(requesthash, clientRequest.getAffectedKey(), clientRequest.getValue());
+
+                    ClientResponse clientResponse = new ClientResponse();
+                    clientResponse.setRecipient(clientRequest.getSender());
+                    clientResponse.setMessageType("clientresponse");
+                    if(doesKeyExist(requesthash, clientRequest.getAffectedKey()))
+                    {
+                        clientResponse.setResponse("Key: " + clientRequest.getAffectedKey() + " in Benutzung, bitte update verwenden.");
+                    }
+                    else
+                    {
+                        handleCreate(requesthash, clientRequest.getAffectedKey(), clientRequest.getValue());
+                        clientResponse.setResponse("Daten erfolgreich gespeichert!");
+                    }
+
+                    returnRequest(clientResponse);
                     break;
                 }
                 case "read":
                 {
                     ClientResponse clientResponse = new ClientResponse();
-                    clientResponse.setResponse(datastorage.get(requesthash).get(clientRequest.getAffectedKey()));
                     clientResponse.setRecipient(clientRequest.getSender());
                     clientResponse.setMessageType("clientresponse");
+                    if(doesKeyExist(requesthash, clientRequest.getAffectedKey()))
+                    {
+                        clientResponse.setResponse(datastorage.get(requesthash).get(clientRequest.getAffectedKey()));
+                    }
+                    else
+                    {
+                        clientResponse.setResponse("Keine Daten für Key: " + clientRequest.getAffectedKey() + " gefunden.");
+                    }
                     returnRequest(clientResponse);
                     break;
                 }
+                case "delete":
+                {
+                    ClientResponse clientResponse = new ClientResponse();
+                    clientResponse.setRecipient(clientRequest.getSender());
+                    clientResponse.setMessageType("clientresponse");
+                    if(doesKeyExist(requesthash, clientRequest.getAffectedKey()))
+                    {
+                        clientResponse.setResponse("Key: " + clientRequest.getAffectedKey() + " mit Daten: " +
+                                datastorage.get(requesthash).get(clientRequest.getAffectedKey()) + " gelöscht");
+                        handleDelete(requesthash, clientRequest.getAffectedKey());
+                    }
+                    else
+                    {
+                        clientResponse.setResponse("Keine Daten für Key: " + clientRequest.getAffectedKey() + " gefunden.");
+                    }
+                    returnRequest(clientResponse);
+                    break;
+                }
+                case "update":
+                {
+                    ClientResponse clientResponse = new ClientResponse();
+                    clientResponse.setMessageType("clientresponse");
+                    clientResponse.setRecipient(clientRequest.getSender());
+
+                    if(doesKeyExist(requesthash, clientRequest.getAffectedKey()))
+                    {
+                        clientResponse.setResponse("Key: " + clientRequest.getAffectedKey() + " Daten von: " +
+                                datastorage.get(requesthash).get(clientRequest.getAffectedKey()) + " auf " + clientRequest.getValue() + " verändert!");
+                        handleUpdate(requesthash, clientRequest.getAffectedKey(), clientRequest.getValue());
+                    }
+                    else
+                    {
+                        clientResponse.setResponse("Keine Daten für Key: " + clientRequest.getAffectedKey() + " gefunden.");
+                    }
+
+                    returnRequest(clientResponse);
+                    break;
+                }
+
 
             }
 
         }
         else if(requesthash > range.getHigh())
         {
+            clientRequest.setBemerkung("Von " + welchercluster + " an next gesendet");
             send(nextMaster, Tools.getMessageAsJSONString(clientRequest));
         }
         else
         {
+            clientRequest.setBemerkung("Von " + welchercluster + " an prev gesendet");
             send(previousMaster, Tools.getMessageAsJSONString(clientRequest));
         }
-        System.out.println("Hier1");
         for(Integer key : datastorage.keySet())
         {
             Map<String, String> data = datastorage.get(key);
             for(Map.Entry<String, String> entry : data.entrySet())
             {
-                System.out.println("Hier2");
                 System.out.println(entry.getKey() + ":" + entry.getValue());
             }
         }
+    }
+
+    public boolean doesKeyExist(int requesthash, String key)
+    {
+        try {
+            datastorage.get(requesthash).get(key);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public void handleDelete(int requesthash, String key)
+    {
+        datastorage.get(requesthash).remove(key);
+        datastorage.remove(requesthash);
+    }
+
+    public void handleUpdate(int requesthash, String key, String value)
+    {
+        handleDelete(requesthash, key);
+        handleCreate(requesthash, key, value);
     }
 
     public void handleCreate(int requesthash, String key, String value)
@@ -244,6 +316,24 @@ public class Node extends DrasylNode
         }, 0, intervall);
     }
 
+    private void confirmActivation(Message message)
+    {
+        NodeResponse nodeResponse = new NodeResponse();
+        nodeResponse.setMessageType("confirmation");
+        nodeResponse.setBemerkung("Settings eingerichtet");
+        nodeResponse.setToken(message.getToken());
+        nodeResponse.setRecipient(message.getSender());
+        nodeResponse.setSender(identity().getAddress().toString());
+
+        Random rand = new Random();
+        try {
+            Thread.sleep(rand.nextInt(1000));
+            send(nodeResponse.getRecipient(), Tools.getMessageAsJSONString(nodeResponse));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
     @Override
     public void onEvent(Event event) {
@@ -288,11 +378,17 @@ public class Node extends DrasylNode
                     }
                     previousMaster = settings.getPreviousmaster();
                     nextMaster = settings.getNextmaster();
+                    welchercluster = settings.getClusterid();
                     range = new NodeRange(settings.getLow(), settings.getHigh());
+                    hashrange = settings.getHashrange();
+
+                    confirmActivation(settings);
 
                     System.out.println(localCluster.toString() + "\n" + isMaster + "\n" + previousMaster + "\n" + nextMaster + "\n" + range.toString() + "\n" + settings.getClusterid());
                     break;
                 case "clientrequest":
+                    ClientRequest request = (ClientRequest) message;
+                    System.out.println("Bemerkung: " + request.getBemerkung() + " Cluster: " +welchercluster);
                     handleClientRequest((ClientRequest) message);
 
                 default:
