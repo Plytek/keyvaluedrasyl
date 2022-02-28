@@ -6,6 +6,7 @@ import java.util.Map;
 public class ClusterInfoWindow {
     private JTable InfoTable;
     private JPanel panel1;
+    private JLabel clusterLabel;
     private Node node;
     private TableModel tableModel;
     private Map<String, Boolean> cluster;
@@ -18,7 +19,8 @@ public class ClusterInfoWindow {
         tableModel = new ClusterInfoTableModel();
         InfoTable.setModel(tableModel);
         InfoTable.setAutoCreateColumnsFromModel(true);
-        frame = new JFrame("Node Data Window");
+        clusterLabel.setText(Integer.toString(node.getWelchercluster()));
+        frame = new JFrame("Cluster " +  Integer.toString(node.getWelchercluster()) + " Info");
         frame.setContentPane(panel1);
         frame.setSize(600, 400);
         frame.setVisible(true);

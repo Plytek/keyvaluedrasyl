@@ -3,6 +3,8 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -11,11 +13,13 @@ public class NodeDataWindow {
     private JTable nodesDataTable;
     private JPanel panel1;
     private JButton showMoreButton;
+    private JButton valueÄndernButton;
     private Node node;
     private Map<Integer, Map<String,String>> nodeData;
     TableModel tableModel;
     JFrame frame;
     NodeOptionsWindow w;
+    EditNodeDataWindow ew;
     private Timer timer;
 
     public NodeDataWindow(Node n)
@@ -31,7 +35,26 @@ public class NodeDataWindow {
         tableModel = new NodesDataTableModel();
         nodesDataTable.setModel(tableModel);
         nodesDataTable.setAutoCreateColumnsFromModel(true);
-        frame = new JFrame("Node Data Window");
+        nodesDataTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int row = nodesDataTable.rowAtPoint(e.getPoint());
+                int col= nodesDataTable.columnAtPoint(e.getPoint());
+                if (col == 3)
+                {
+                    refreshData();
+                    nodeData.remove(nodesDataTable.getValueAt(row, 0));
+                    node.setDatastorage(nodeData);
+                }
+            }
+        });
+        valueÄndernButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                ew = new EditNodeDataWindow(node);
+            }
+        });
+        frame = new JFrame("Node Data");
         frame.setContentPane(panel1);
         frame.setSize(600, 400);
         frame.setVisible(true);
@@ -66,7 +89,7 @@ public class NodeDataWindow {
 
         @Override
         public int getColumnCount() {
-            return 3;
+            return 4;
         }
 
         @Override
@@ -89,6 +112,10 @@ public class NodeDataWindow {
             else if(i1 == 1)
             {
                 return value.keySet().toArray()[0];
+            }
+            else if (i1 == 3)
+            {
+                return "löschen";
             }
             return value.values().toArray()[0];
         }

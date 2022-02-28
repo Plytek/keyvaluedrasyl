@@ -47,7 +47,7 @@ public class NodeOptionsWindow {
         tableModel = new NodeOptionsTableModel();
         NodeTable.setModel(tableModel);
         NodeTable.setAutoCreateColumnsFromModel(true);
-        frame = new JFrame("Node Data Window");
+        frame = new JFrame("Node Options");
         frame.setContentPane(panel);
         frame.setSize(600, 400);
         frame.setVisible(true);
