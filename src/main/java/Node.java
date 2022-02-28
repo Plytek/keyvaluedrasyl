@@ -48,6 +48,40 @@ public class Node extends DrasylNode
         return this.identity().getAddress().toString();
     }
 
+    public void handleClusterOffline(String address) {
+        if(localCluster.get(address))
+        {
+            // offline node ist master
+            String nextMaster = this.getAddress();
+
+            for(int i = 0; i < localCluster.size(); i++) {
+                String clusterAddress = (String) localCluster.keySet().toArray()[i];
+
+                if(!clusterAddress.equals(address) && !clusterAddress.equals(this.getAddress()))
+                {
+                    if(clusterAddress.hashCode() > nextMaster.hashCode())
+                    {
+                        nextMaster = clusterAddress;
+                    }
+                }
+            }
+
+            localCluster.put(address, false);
+            localCluster.put(nextMaster, true);
+
+            if(nextMaster.equals(this.getAddress()))
+            {
+                promote(address);
+            }
+        }
+        else
+        {
+            // TODO: offline node ist secondary
+
+
+        }
+    }
+
     public void sendHeartbeat(long intervall) {
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
@@ -56,31 +90,26 @@ public class Node extends DrasylNode
                 for(int i = 0; i < localCluster.size(); i++)
                 {
                     String currentnode = (String) localCluster.keySet().toArray()[i];
-                    boolean isMaster = localCluster.get(currentnode);
+                    //boolean isMaster = localCluster.get(currentnode);
                     heartbeat.setSender(identity.getAddress().toString());
                     heartbeat.setRecipient(currentnode);
                     heartbeat.updateTimestamp();
 
-                    if(isMaster && !identity().getAddress().toString().equals(currentnode))
+                    if(!identity().getAddress().toString().equals(currentnode))
                     {
-                        heartbeat.setHeartbeat("masterheartbeat");
-                        heartbeat.setBemerkung("Von Master an Secondary");
-                        send(currentnode, Tools.getMessageAsJSONString(heartbeat));
+                        heartbeat.setHeartbeat("heartbeat");
+                        heartbeat.setBemerkung("cluster hearbeat");
+
+                        messageConfirmer.sendMessage(heartbeat,
+                                (Message m) -> {
+                                    System.out.println("cluster-heartbeat success from " + m.getSender() + " to " + m.getRecipient());
+                                },
+                                (Message m) -> {
+                                    System.out.println("cluster-heartbeat error from " + m.getSender() + " to " + m.getRecipient());
+                                    handleClusterOffline(currentnode);
+                                }
+                        );
                     }
-                    else if(!isMaster && !identity().getAddress().toString().equals(currentnode))
-                    {
-                        heartbeat.setHeartbeat("secondaryheartbeat");
-                        heartbeat.setBemerkung("Von Secondary an Master");
-                        send(currentnode, Tools.getMessageAsJSONString(heartbeat));
-                    }
-                }
-                if(isMaster)
-                {
-                    heartbeat.setHeartbeat("masterheartbeat");
-                    heartbeat.updateTimestamp();
-                    heartbeat.setBemerkung("Von Cluster " + welchercluster + " an andere Master");
-                    send(previousMaster, Tools.getMessageAsJSONString(heartbeat));
-                    send(nextMaster, Tools.getMessageAsJSONString(heartbeat));
                 }
             }
 
@@ -92,9 +121,27 @@ public class Node extends DrasylNode
 
     }
 
-    public void promote()
+    public void promote(String oldMaster)
     {
-        isMaster = true;
+         isMaster = true;
+
+         Set<String> ringMasters = new HashSet<>();
+         ringMasters.add(previousMaster);
+         ringMasters.add(nextMaster);
+
+         for(String ringMaster : ringMasters)
+         {
+             //TODO: informMaster Message senden an ringMaster
+             Message message = new Message("newmaster", getAddress(), ringMaster);
+             message.generateToken();
+             message.setBemerkung(oldMaster);
+
+             messageConfirmer.sendMessage(
+                     message,
+                     (Message m) -> System.out.println("newmaster onSuccess"),
+                     (Message m) -> System.out.println("newmaster onError")
+             );
+         }
     }
 
     public void buildConsent()
@@ -123,7 +170,6 @@ public class Node extends DrasylNode
             switch (clientRequest.getRequestType()){
                 case "create":
                 {
-
                     ClientResponse clientResponse = new ClientResponse();
                     clientResponse.setRecipient(clientRequest.getSender());
                     clientResponse.setMessageType("clientresponse");
@@ -270,6 +316,18 @@ public class Node extends DrasylNode
 
             switch(messageType)
             {
+                case "newmaster":
+                    String oldMaster = message.getBemerkung();
+                    if(previousMaster.equals(oldMaster)){
+                        previousMaster = message.getSender();
+                    }
+                    else if(nextMaster.equals(oldMaster)){
+                        nextMaster = message.getSender();
+                    }
+                    else {
+                        System.out.println("newmaster: oldMaster unbekannt");
+                    }
+                    break;
                 case "heartbeat":
                     Heartbeat heartbeat = (Heartbeat) message;
                     System.out.println("Heartbeat: " + heartbeat.getBemerkung());

@@ -13,7 +13,7 @@ import java.util.zip.Checksum;
 public class Tools {
     private static ObjectMapper MAPPER = new ObjectMapper();
     private static Map<String, Class> messageTypeClasses = Map.of("clientrequest", ClientRequest.class, "heartbeat", Heartbeat.class, "clientresponse", ClientResponse.class, "settings", Settings.class, "registernode", Message.class, "confirm", Message.class,
-            "confirmation", NodeResponse.class, "registerclient", Message.class, "networkonline", NodeResponse.class);
+            "confirmation", NodeResponse.class, "registerclient", Message.class, "networkonline", NodeResponse.class, "newmaster", Message.class);
 
     /**
      * JSON-String parsen

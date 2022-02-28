@@ -36,6 +36,7 @@ public class CoordinatorNode extends DrasylNode {
         messageConfirmer = new MessageConfirmer(this);
     }
 
+
     private void registerProcess(Message message)
     {
         registerednodes.add(message.getSender());
