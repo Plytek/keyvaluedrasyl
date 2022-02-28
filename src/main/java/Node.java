@@ -378,6 +378,7 @@ public class Node extends DrasylNode
                 message.setRecipient(coordinator);
                 send(coordinator, Tools.getMessageAsJSONString(message));
                 isOnline = true;
+                isMaster = false;
             }
             else if(event instanceof NodeOfflineEvent)
             {
@@ -387,6 +388,7 @@ public class Node extends DrasylNode
             else if (event instanceof NodeDownEvent)
             {
                 isOnline = false;
+                isMaster = false;
             }
             else
             {
