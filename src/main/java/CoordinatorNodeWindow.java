@@ -18,6 +18,9 @@ public class CoordinatorNodeWindow {
     private CoordinatorNodeInfoTableModel tableModel;
     private JFrame frame;
     private Timer timer;
+    private CoordinatorRegisteredNodesWindow regnw;
+    private CoordinatorMainNodesWindow mainnw;
+    private CoordinatorResponseWaitMessagesWindow rwmw;
 
     public CoordinatorNodeWindow(CoordinatorNode c)
     {
@@ -34,10 +37,28 @@ public class CoordinatorNodeWindow {
                 node.start().toCompletableFuture().join();
             }
         });
+        zeigeRegistrierteNodesButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                regnw = new CoordinatorRegisteredNodesWindow(node.getRegisterednodes());
+            }
+        });
+        zeigeMainNodesButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                mainnw = new CoordinatorMainNodesWindow(node.getMainnodes());
+            }
+        });
+        zeigeResponseWaitMessagesButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                rwmw = new CoordinatorResponseWaitMessagesWindow(node);
+            }
+        });
         tableModel = new CoordinatorNodeInfoTableModel();
         InfoTable.setModel(tableModel);
         InfoTable.setAutoCreateColumnsFromModel(true);
-        frame = new JFrame("Node Options");
+        frame = new JFrame("Coordinator Node");
         frame.setContentPane(panel);
         frame.setSize(600, 400);
         frame.setVisible(true);

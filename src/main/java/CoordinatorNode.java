@@ -192,6 +192,11 @@ public class CoordinatorNode extends DrasylNode {
         else if (event instanceof NodeDownEvent)
         {
             isOnline = false;
+            registerednodes.clear();
+            mainnodes.clear();
+            clients.clear();
+            responseWaitMap.clear();
+            messageConfirmer = new MessageConfirmer(this);
         }
     }
 }
