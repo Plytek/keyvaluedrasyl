@@ -26,20 +26,20 @@ public class Node extends DrasylNode
     private int welchercluster;
     private int hashrange;
 
-
-    private Timer confirmTimer;
-    Timer scheduler = new Timer();
-    private Map<String, Message> confirmMessages = new HashMap<>();
-
-
+    private Timer scheduler = new Timer();
     private Map<Integer, Map<String,String>> datastorage = new HashMap<>();
+    private MessageConfirmer messageConfirmer;
 
     protected Node(DrasylConfig config) throws DrasylException {
         super(config);
+
+        messageConfirmer = new MessageConfirmer(this);
     }
 
     public Node() throws DrasylException {
         super();
+
+        messageConfirmer = new MessageConfirmer(this);
     }
 
     public void registriereNodes()
@@ -81,7 +81,7 @@ public class Node extends DrasylNode
                     send(previousMaster, Tools.getMessageAsJSONString(heartbeat));
                     send(nextMaster, Tools.getMessageAsJSONString(heartbeat));
                 }
-                }
+            }
 
         }, 0, intervall);
     }
@@ -251,81 +251,13 @@ public class Node extends DrasylNode
         send(clientResponse.getRecipient(), Tools.getMessageAsJSONString(clientResponse));
     }
 
-    // Sende eine Bestätigung auf eine Nachricht
-    public void sendConfirmation(String token, String receiver) {
-        Message confirmMessage = new Message(
-                "confirm",
-                this.identity.toString(),
-                receiver
-        );
-        confirmMessage.setToken(token);
-
-        this.send(receiver, Tools.getMessageAsJSONString(confirmMessage));
-    }
-
-    // Sende eine Nachricht die von dem Empfänger bestätigt werden muss
-    // Falls keine Bestätigung kommt, gibt es nach 5s einen Timeout und die Nachricht wird erneut gesendet
-    // Nach 3 Timeouts wird aufgegeben -> TODO: Error-Handling in dem Fall
-    // Die automatische Prüfung erfolgt in "startMessageConfirmer" bzw. "checkTimeoutMessage"
-    public void sendConfirmedMessage(Message message)
-    {
-        long currentTime = System.currentTimeMillis();
-        message.setTime(currentTime);
-        confirmMessages.put(message.getToken(), message);
-        if(confirmTimer == null)
-        {
-            // start MessageConfirmer, falls noch nicht aktiv
-            startMessageConfirmer(1000);
-        }
-
-        this.send(message.getRecipient(), Tools.getMessageAsJSONString(message));
-    }
 
 
-    // Prüfe ob für eine Nachricht aus confirmMessages ein Timeout besteht
-    // Timeout nach 5 Sekunden
-    // Nach jedem Timeout wird Nachricht erneut gesendet bis zu 3mal
-    // Wenn nach 3 Timeouts nicht erfolgreich -> TODO: Error-Handling
-    public void checkTimeoutMessage(String token)
-    {
-        long currentTime = System.currentTimeMillis();
-        Message message = confirmMessages.get(token);
 
-        // nur handeln falls timeout  nach 5 Sekunden
-        if(currentTime - message.getTime() > 5000)
-        {
-            // counter zählt wie oft bisher timeout aufgetaucht -> jetzt einmal mehr als counter
-            // timer updaten für ggf nächsten timeout
-            message.tickCounter();
-            message.updateTimestamp();
-            int timeouts = message.getCounter();
 
-            // maximal 3 Timeouts
-            if(timeouts >= 3) {
-                System.out.println("TODO: Dreimal Timeout bei Message Delivery!");
-            } else {
-                System.out.println("Timeout Nummer " + timeouts);
-                // erneut zustellen
-                this.send(message.getRecipient(), Tools.getMessageAsJSONString(message));
-            }
-        }
-    }
 
-    // Starte die automatische Prüfung für confirmMessages
-    public void startMessageConfirmer(long intervall)
-    {
-        confirmTimer = new Timer();
-        confirmTimer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                for(String token : confirmMessages.keySet()) {
-                    checkTimeoutMessage(token);
-                }
-            }
 
-        }, 0, intervall);
-    }
-
+    /*
     private void confirmActivation(Message message)
     {
         Message savedmessage = confirmMessages.get(message.getToken());
@@ -345,6 +277,7 @@ public class Node extends DrasylNode
             confirmMessages.remove(message.getToken());
         }
     }
+     */
 
 
     @Override
@@ -353,21 +286,12 @@ public class Node extends DrasylNode
         {
             System.out.println("messageevent: " + messageEvent);
             String sender = messageEvent.getSender().toString();
-
             Message message = Tools.getMessageFromEvent(messageEvent);
-
             String messageType = message.getMessageType();
 
-            String token = message.getToken();
-            if(confirmMessages.containsKey(token))
-            {
-                // falls confirmation auf gesendete Message, so entferne aus confirm-Queue
-                confirmMessages.remove(token);
-            }
-            else {
-                // ansonsten sende selber confirmation
-                //sendConfirmation(token, sender);
-            }
+            // Lasse MessageConfirmer wissen, dass Nachricht eingetroffen
+            // Ansonsten weiß MessageConfirmer nicht, ob Nachrichten bestätigt wurden!
+
 
             switch(messageType)
             {
@@ -397,10 +321,10 @@ public class Node extends DrasylNode
                         welchercluster = settings.getClusterid();
                         range = new NodeRange(settings.getLow(), settings.getHigh());
                         hashrange = settings.getHashrange();
-                        confirmMessages.put(settings.getToken(), settings);
+                        //confirmMessages.put(settings.getToken(), settings);
                         System.out.println(localCluster.toString() + "\n" + isMaster + "\n" + previousMaster + "\n" + nextMaster + "\n" + range.toString() + "\n" + settings.getClusterid());
                     }
-                    confirmActivation(settings);
+                    //confirmActivation(settings);
                     break;
                 case "clientrequest":
                     ClientRequest request = (ClientRequest) message;
