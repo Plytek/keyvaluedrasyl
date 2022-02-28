@@ -28,6 +28,7 @@ public class Node extends DrasylNode
 
 
     private Timer confirmTimer;
+    Timer scheduler = new Timer();
     private Map<String, Message> confirmMessages = new HashMap<>();
 
 
@@ -316,7 +317,6 @@ public class Node extends DrasylNode
 
     private void confirmActivation(Message message)
     {
-        Timer scheduler = new Timer();
         Message savedmessage = confirmMessages.get(message.getToken());
         if(!message.isConfirmed())
         {
