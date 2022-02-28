@@ -291,7 +291,7 @@ public class Node extends DrasylNode
 
             // Lasse MessageConfirmer wissen, dass Nachricht eingetroffen
             // Ansonsten weiß MessageConfirmer nicht, ob Nachrichten bestätigt wurden!
-
+            messageConfirmer.receiveMessage(message);
 
             switch(messageType)
             {

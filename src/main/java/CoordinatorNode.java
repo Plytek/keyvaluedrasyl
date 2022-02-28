@@ -149,6 +149,7 @@ public class CoordinatorNode extends DrasylNode {
         {
             Message message = null;
             message = Tools.getMessageFromEvent(msgevent);
+            messageConfirmer.receiveMessage(message);
 
             switch(message.getMessageType())
             {
