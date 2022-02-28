@@ -1,7 +1,6 @@
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.text.ParseException;
 
 public class CreateNodesWindow {
     private JButton okButton;
@@ -10,6 +9,7 @@ public class CreateNodesWindow {
     private JButton downButton;
     private JPanel innerPanel;
     private JPanel panel;
+    private JCheckBox coordinatorNodeErstellenCheckBox;
     private JFrame frame;
     private int anzahl;
     private ApplicationGUI gui;
@@ -34,7 +34,7 @@ public class CreateNodesWindow {
                 anzahl = getIntegerFromField();
                 if (anzahl != 0)
                 {
-                    gui.setNodecountFromUI(anzahl);
+                    gui.recieveCreateDialogResults(anzahl, coordinatorNodeErstellenCheckBox.isSelected());
                     frame.dispose();
                 }
             }

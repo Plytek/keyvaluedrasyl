@@ -10,7 +10,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.nio.file.Path;
-import java.text.NumberFormat;
 import java.util.*;
 import java.util.List;
 import java.util.Timer;
@@ -147,10 +146,14 @@ public class ApplicationGUI {
         CreateNodesWindow cnd = new CreateNodesWindow(this);
     }
 
-    public void setNodecountFromUI(int n)
+    public void recieveCreateDialogResults(int n, boolean b)
     {
         nodes = new ArrayList<>();
         DrasylConfig config;
+        if (b)
+        {
+            createCoordinator();
+        }
         for (int i = 0; i < n; i++)
         {
             try {
