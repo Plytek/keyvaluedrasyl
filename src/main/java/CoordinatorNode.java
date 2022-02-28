@@ -6,6 +6,7 @@ import org.drasyl.node.DrasylException;
 import org.drasyl.node.DrasylNode;
 import org.drasyl.node.event.Event;
 import org.drasyl.node.event.MessageEvent;
+import org.drasyl.node.event.NodeDownEvent;
 import org.drasyl.node.event.NodeOnlineEvent;
 
 import java.util.*;
@@ -22,6 +23,7 @@ public class CoordinatorNode extends DrasylNode {
     int range = 9998;
     int clustersize = 3;
     int number = 1;
+    boolean isOnline;
 
     private MessageConfirmer messageConfirmer;
 
@@ -181,6 +183,11 @@ public class CoordinatorNode extends DrasylNode {
         if(event instanceof NodeOnlineEvent)
         {
             System.out.println("Ich bin: " + identity.getAddress().toString());
+            isOnline = true;
+        }
+        else if (event instanceof NodeDownEvent)
+        {
+            isOnline = false;
         }
     }
 }
