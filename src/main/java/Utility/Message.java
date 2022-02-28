@@ -15,6 +15,7 @@ public class Message
     protected String recipient;
     protected int counter;
     protected String bemerkung;
+    protected boolean confirmed = false;
 
     public Message() {
     }
