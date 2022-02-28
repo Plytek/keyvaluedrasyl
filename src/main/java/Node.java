@@ -57,10 +57,8 @@ public class Node extends DrasylNode
             for(int i = 0; i < localCluster.size(); i++) {
                 String clusterAddress = (String) localCluster.keySet().toArray()[i];
 
-                if(!clusterAddress.equals(address) && !clusterAddress.equals(this.getAddress()))
-                {
-                    if(clusterAddress.hashCode() > nextMaster.hashCode())
-                    {
+                if (!clusterAddress.equals(address) && !clusterAddress.equals(this.getAddress())) {
+                    if (clusterAddress.hashCode() > nextMaster.hashCode()) {
                         nextMaster = clusterAddress;
                     }
                 }
@@ -86,10 +84,11 @@ public class Node extends DrasylNode
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                Heartbeat heartbeat = new Heartbeat();
                 for(int i = 0; i < localCluster.size(); i++)
                 {
+                    Heartbeat heartbeat = new Heartbeat();
                     String currentnode = (String) localCluster.keySet().toArray()[i];
+
                     //boolean isMaster = localCluster.get(currentnode);
                     heartbeat.setSender(identity.getAddress().toString());
                     heartbeat.setRecipient(currentnode);
@@ -102,7 +101,7 @@ public class Node extends DrasylNode
 
                         messageConfirmer.sendMessage(heartbeat,
                                 (Message m) -> {
-                                    System.out.println("cluster-heartbeat success from " + m.getSender() + " to " + m.getRecipient());
+                                    //System.out.println("cluster-heartbeat success from " + m.getSender() + " to " + m.getRecipient());
                                 },
                                 (Message m) -> {
                                     System.out.println("cluster-heartbeat error from " + m.getSender() + " to " + m.getRecipient());
@@ -131,7 +130,9 @@ public class Node extends DrasylNode
 
          for(String ringMaster : ringMasters)
          {
-             //TODO: informMaster Message senden an ringMaster
+             // skippe falls Liste auf sich selber zeigt
+             if(ringMaster.equals(oldMaster)) continue;
+
              Message message = new Message("newmaster", getAddress(), ringMaster);
              message.generateToken();
              message.setBemerkung(oldMaster);
@@ -305,7 +306,7 @@ public class Node extends DrasylNode
     public void onEvent(Event event) {
         if(event instanceof MessageEvent messageEvent)
         {
-            System.out.println("messageevent: " + messageEvent);
+            //System.out.println("messageevent: " + messageEvent);
             String sender = messageEvent.getSender().toString();
             Message message = Tools.getMessageFromEvent(messageEvent);
             String messageType = message.getMessageType();
@@ -330,7 +331,7 @@ public class Node extends DrasylNode
                     break;
                 case "heartbeat":
                     Heartbeat heartbeat = (Heartbeat) message;
-                    System.out.println("Heartbeat: " + heartbeat.getBemerkung());
+                    //System.out.println("Heartbeat: " + heartbeat.getBemerkung() + " von " + message.getSender());
                     break;
                 case "confirmation":
                     System.out.println("confirmation");

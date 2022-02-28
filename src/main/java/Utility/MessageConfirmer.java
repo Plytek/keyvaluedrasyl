@@ -27,16 +27,7 @@ public class MessageConfirmer {
     // Starte den MessageConfirmer für die eigene Adresse
     public MessageConfirmer(DrasylNode node) {
         this.node = node;
-        // timer für jede Sekunde
-        timer = new Timer();
-        timer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                for(String token : messages.keySet()) {
-                    checkTimeoutMessage(token);
-                }
-            }
-        }, 0, 1000);
+
     }
 
     // Sende eine Nachricht die von dem Empfänger bestätigt werden muss
@@ -49,10 +40,25 @@ public class MessageConfirmer {
         message.setSender(node.identity().getAddress().toString());
         message.setTime(currentTime);
         message.setConfirmRequested(true);
+        message.generateToken();
         messages.put(message.getToken(), message);
         onSuccesses.put(message.getToken(), onSuccess);
         onErrors.put(message.getToken(), onError);
         node.send(message.getRecipient(), Tools.getMessageAsJSONString(message));
+
+        if(timer == null)
+        {
+            // timer für jede Sekunde
+            timer = new Timer();
+            timer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    for(String token : messages.keySet()) {
+                        checkTimeoutMessage(token);
+                    }
+                }
+            }, 0, 1000);
+        }
     }
 
     // Muss vom Knoten bei jeder ankommenden Message aufgerufen werden !
@@ -63,7 +69,7 @@ public class MessageConfirmer {
             // Entferne Nachricht aus Behälter, falls confirm eingetroffen
             if(messages.containsKey(token))
             {
-                onSuccesses.get(token).accept(messages.get(message.token));
+                onSuccesses.get(token).accept(messages.get(token));
 
                 messages.remove(token);
                 onSuccesses.remove(token);
@@ -102,7 +108,7 @@ public class MessageConfirmer {
         Message message = messages.get(token);
 
         // nur handeln falls timeout  nach 5 Sekunden
-        if(currentTime - message.getTime() > 5000)
+        if(currentTime - message.getTime() > 3000)
         {
             // timeout!
             // counter zählt wie oft bisher timeout aufgetaucht -> jetzt einmal mehr als counter
@@ -113,7 +119,6 @@ public class MessageConfirmer {
 
             // maximal 3 Timeouts
             if(timeouts >= 3) {
-                System.out.println("Dreimal Timeout bei Message Delivery -> onError wird aufgerufen!");
                 onErrors.get(token).accept(message);
 
                 messages.remove(token);
