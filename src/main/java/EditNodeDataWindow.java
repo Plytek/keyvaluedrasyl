@@ -23,6 +23,7 @@ public class EditNodeDataWindow {
                 for (Integer key : data.keySet()) {
                     if (data.get(key).containsKey(formattedTextField1.getText())) {
                         data.get(key).put(formattedTextField1.getText(), formattedTextField2.getText());
+                        frame.dispose();
                         return;
                     }
                 }

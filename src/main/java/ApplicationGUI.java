@@ -1,11 +1,9 @@
-import Utility.Heartbeat;
-import Utility.Tools;
 import lombok.Setter;
-import org.drasyl.identity.DrasylAddress;
+import org.drasyl.node.DrasylException;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -20,6 +18,8 @@ public class ApplicationGUI {
     private JPanel NodesWindow;
     private JButton StartNodesButton;
     private JButton StopNodesButton;
+    private JButton coordinatorNodeButton;
+    private JButton coordinatorNodeAdresseButton;
     private List<Node> nodes;
     private NodesTableModel tableModel;
     private JFrame frame;
@@ -27,9 +27,13 @@ public class ApplicationGUI {
     private List<NodeOptionsWindow> optionsWindows = new LinkedList<>();
     private Timer timer;
     private CoordinatorNode coordinator;
+    private CoordinatorNodeWindow corw;
+    private CoordinatorAddressDialog cadrw;
+    private ApplicationGUI myself;
 
     public ApplicationGUI(List<Node> n, CoordinatorNode coord)
     {
+        myself = this;
         nodes = n;
         coordinator = coord;
         StartNodesButton.addActionListener(new ActionListener() {
@@ -37,7 +41,7 @@ public class ApplicationGUI {
             public void actionPerformed(ActionEvent actionEvent) {
                 for (Node n : nodes)
                 {
-                    coord.clearNodes();
+                    coordinator.clearNodes();
                     n.start().toCompletableFuture().join();
                 }
             }
@@ -49,6 +53,30 @@ public class ApplicationGUI {
                 {
                     n.shutdown().toCompletableFuture().join();
                 }
+            }
+        });
+        coordinatorNodeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                if (coordinator == null)
+                {
+                    int dialogButton = JOptionPane.YES_NO_OPTION;
+                    int dialogResult = JOptionPane.showConfirmDialog(frame, "CoordinatorNode wurde noch nicht erstellt. Soll einer erstellt werden?", "Kein CoordinatorNode", dialogButton);
+                    if(dialogResult == 0) {
+                        createCoordinator();
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+                corw = new CoordinatorNodeWindow(coordinator);
+            }
+        });
+        coordinatorNodeAdresseButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                cadrw = new CoordinatorAddressDialog();
             }
         });
         tableModel = new NodesTableModel();
@@ -94,6 +122,25 @@ public class ApplicationGUI {
         dataWindows.add(new NodeDataWindow(nodes.get(nodeNr)));
     }
 
+    private void createCoordinator()
+    {
+        try {
+            coordinator = new CoordinatorNode();
+            setCoordinatorAddressInNodes(coordinator.identity().getAddress().toString());
+        } catch (DrasylException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void setCoordinatorAddressInNodes(String address)
+    {
+        for (Node n : nodes)
+        {
+            n.setCoordinator(address);
+        }
+
+    }
 
     public class NodesTableModel extends AbstractTableModel {
         private final String[] headers = {
@@ -151,4 +198,50 @@ public class ApplicationGUI {
 
 
     }
+
+    public class CoordinatorAddressDialog extends JDialog
+    {
+        private JFormattedTextField addressTextField;
+        private JButton ok;
+        private JButton abbrechen;
+        private JLabel label;
+        private JFrame frame;
+
+        public CoordinatorAddressDialog()
+        {
+            super(new JFrame("CoordinatorNode Addresse"), "CoordinatorNode Addresse");
+            label = new JLabel("Addresse:");
+            addressTextField = new JFormattedTextField();
+            try {
+                addressTextField.setText(coordinator.identity().getAddress().toString());
+            }
+            catch (NullPointerException e)
+            {
+                addressTextField.setText("");
+            }
+            ok = new JButton("Ok");
+            ok.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent actionEvent) {
+                    setCoordinatorAddressInNodes(addressTextField.getText());
+                    dispose();
+                }
+            });
+            abbrechen = new JButton("Abbrechen");
+            abbrechen.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent actionEvent) {
+                    dispose();
+                }
+            });
+            setLayout(new GridLayout(2, 2, 5, 5));
+            add(label);
+            add(addressTextField);
+            add(ok);
+            add(abbrechen);
+            pack();
+            setVisible(true);
+        }
+    }
+
 }
