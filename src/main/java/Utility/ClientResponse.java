@@ -3,6 +3,8 @@ package Utility;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Objects;
+
 @Getter
 @Setter
 public class ClientResponse extends Message
@@ -23,4 +25,16 @@ public class ClientResponse extends Message
         this.messageType = "clientresponse";
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ClientResponse that = (ClientResponse) o;
+        return Objects.equals(response, that.response);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(response);
+    }
 }
