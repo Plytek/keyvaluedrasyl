@@ -116,6 +116,22 @@ public class ClientNode extends DrasylNode
 
     }
 
+    public void connectToCoordinator()
+    {
+        sendHeartbeat(5000);
+        Message message = new Message();
+        message.setMessageType("registerclient");
+        message.setRecipient(coordinator);
+        message.setSender(identity.getAddress().toString());
+        message.generateToken();
+
+        send(message.getRecipient(), Tools.getMessageAsJSONString(message));
+    }
+
+    public void addMaster(String addresse)
+    {
+        mainnodes.add(addresse);
+    }
 
     @Override
     public void onEvent(Event event) {
@@ -164,14 +180,7 @@ public class ClientNode extends DrasylNode
         }
         else if(event instanceof NodeOnlineEvent e)
         {
-            sendHeartbeat(5000);
-            Message message = new Message();
-            message.setMessageType("registerclient");
-            message.setRecipient(coordinator);
-            message.setSender(identity.getAddress().toString());
-            message.generateToken();
-
-            send(message.getRecipient(), Tools.getMessageAsJSONString(message));
+            connectToCoordinator();
         }
         else if(event instanceof NodeDownEvent e)
         {

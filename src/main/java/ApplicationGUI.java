@@ -249,7 +249,7 @@ public class ApplicationGUI {
             if (coordinator != null) {
                 client.setCoordinator(coordinatorAddress);
             }
-            clientGUI = new GUIController(client);
+            clientGUI = new GUIController(client, nodes);
             clientGUI.getJFrame().setVisible(false);
             client.start();
         }
