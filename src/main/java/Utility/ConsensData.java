@@ -16,13 +16,13 @@ public class ConsensData {
 
     public ClientResponse findConsens() {
         for(int i=0; i < clientResponses.size(); i++) {
-            int firsthash = clientResponses.get(i).hashCode();
+            int firstChecksum = clientResponses.get(i).checkSum();
 
             for(int j=0; j < clientResponses.size(); j++) {
                 if(i==j) continue;
-                int secondhash = clientResponses.get(j).hashCode();
+                int secondChecksum = clientResponses.get(j).checkSum();
 
-                if(firsthash == secondhash) {
+                if(firstChecksum == secondChecksum) {
                     return clientResponses.get(i);
                 }
             }
