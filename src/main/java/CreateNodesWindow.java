@@ -1,4 +1,6 @@
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -10,6 +12,7 @@ public class CreateNodesWindow {
     private JPanel innerPanel;
     private JPanel panel;
     private JCheckBox coordinatorNodeErstellenCheckBox;
+    private JCheckBox clientNodeErstellenCheckBox;
     private JFrame frame;
     private int anzahl;
     private ApplicationGUI gui;
@@ -35,7 +38,7 @@ public class CreateNodesWindow {
                 anzahl = getIntegerFromField();
                 if (validResult)
                 {
-                    gui.recieveCreateDialogResults(anzahl, coordinatorNodeErstellenCheckBox.isSelected());
+                    gui.recieveCreateDialogResults(anzahl, coordinatorNodeErstellenCheckBox.isSelected(), clientNodeErstellenCheckBox.isSelected());
                     frame.dispose();
                 }
             }
