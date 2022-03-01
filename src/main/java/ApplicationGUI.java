@@ -71,6 +71,7 @@ public class ApplicationGUI {
                 else if(!(coordinator == null) && (coordinatorAddress.equals(coordinator.identity().getAddress().toString())))
                 {
                     JOptionPane.showMessageDialog(frame, "CoordinatorNode wurde erstellt aber noch nicht gestartet, ist aber als Coordinator eingestellt. Bitte andere Addresse setzen oder CoordinatorNode starten");
+                    return;
                 }
                 for (Node n : nodes)
                 {
