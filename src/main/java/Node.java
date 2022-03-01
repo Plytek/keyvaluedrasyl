@@ -25,6 +25,8 @@ public class Node extends DrasylNode
     private boolean isOnline;
 
     private Map<Integer, Map<String,String>> datastorage = new HashMap<>();
+    private Map<String, ClientRequest> zwischenspeicher = new HashMap<>();
+    private Map<String, List<ClientResponse>> antwortspeicher = new HashMap<>();
     private MessageConfirmer messageConfirmer;
 
     protected Node(DrasylConfig config) throws DrasylException {
@@ -37,11 +39,6 @@ public class Node extends DrasylNode
         super();
 
         messageConfirmer = new MessageConfirmer(this);
-    }
-
-    public void registriereNodes()
-    {
-
     }
 
      public String getAddress() {
@@ -115,11 +112,6 @@ public class Node extends DrasylNode
         }, 0, intervall);
     }
 
-    public void reportNewMaster()
-    {
-
-    }
-
     public void promote(String oldMaster)
     {
          isMaster = true;
@@ -145,19 +137,17 @@ public class Node extends DrasylNode
          }
     }
 
-    public void buildConsent()
-    {
-
-    }
-
     public void handleClientRequest(ClientRequest clientRequest)
     {
         int requesthash = clientRequest.verteilerHash();
+
         System.out.println("Hashcode: " + requesthash);
         if(requesthash >= range.getLow() && requesthash <= range.getHigh())
         {
             if(isMaster)
             {
+                zwischenspeicher.put(clientRequest.getToken(), clientRequest);
+                antwortspeicher.put(clientRequest.getToken(), new ArrayList<>());
                 for(int i = 0; i < localCluster.size(); i++)
                 {
                     String adresse = (String) localCluster.keySet().toArray()[i];
@@ -167,81 +157,118 @@ public class Node extends DrasylNode
                         send(adresse, Tools.getMessageAsJSONString(clientRequest));
                     }
                 }
+                switch (clientRequest.getRequestType()){
+                    case "create":
+                    {
+                        ClientResponse clientResponse = new ClientResponse();
+                        clientResponse.setRecipient(clientRequest.getSender());
+                        clientResponse.setMessageType("clientresponse");
+                        if(doesKeyExist(requesthash, clientRequest.getAffectedKey()))
+                        {
+                            clientResponse.setResponse("Key: " + clientRequest.getAffectedKey() + " in Benutzung, bitte update verwenden.");
+                        }
+                        else
+                        {
+                            handleCreate(requesthash, clientRequest.getAffectedKey(), clientRequest.getValue());
+                            clientResponse.setResponse("Daten erfolgreich gespeichert!");
+                        }
+
+                        returnRequest(clientResponse);
+                        break;
+                    }
+                    case "read":
+                    {
+                        ClientResponse clientResponse = new ClientResponse();
+                        clientResponse.setRecipient(clientRequest.getSender());
+                        clientResponse.setMessageType("clientresponse");
+                        if(doesKeyExist(requesthash, clientRequest.getAffectedKey()))
+                        {
+                            clientResponse.setResponse(datastorage.get(requesthash).get(clientRequest.getAffectedKey()));
+                        }
+                        else
+                        {
+                            clientResponse.setResponse("Keine Daten für Key: " + clientRequest.getAffectedKey() + " gefunden.");
+                        }
+                        antwortspeicher.get(clientRequest.getToken()).add(clientResponse);
+
+
+                        /*ClientResponse clientResponse = new ClientResponse();
+                        clientResponse.setRecipient(clientRequest.getSender());
+                        clientResponse.setMessageType("clientresponse");
+                        if(doesKeyExist(requesthash, clientRequest.getAffectedKey()))
+                        {
+                            clientResponse.setResponse(datastorage.get(requesthash).get(clientRequest.getAffectedKey()));
+                        }
+                        else
+                        {
+                            clientResponse.setResponse("Keine Daten für Key: " + clientRequest.getAffectedKey() + " gefunden.");
+                        }
+                        returnRequest(clientResponse);
+                        break;*/
+                    }
+                    case "delete":
+                    {
+                        ClientResponse clientResponse = new ClientResponse();
+                        clientResponse.setRecipient(clientRequest.getSender());
+                        clientResponse.setMessageType("clientresponse");
+                        if(doesKeyExist(requesthash, clientRequest.getAffectedKey()))
+                        {
+                            clientResponse.setResponse("Key: " + clientRequest.getAffectedKey() + " mit Daten: " +
+                                    datastorage.get(requesthash).get(clientRequest.getAffectedKey()) + " gelöscht");
+                            handleDelete(requesthash, clientRequest.getAffectedKey());
+                        }
+                        else
+                        {
+                            clientResponse.setResponse("Keine Daten für Key: " + clientRequest.getAffectedKey() + " gefunden.");
+                        }
+                        returnRequest(clientResponse);
+                        break;
+                    }
+                    case "update":
+                    {
+                        ClientResponse clientResponse = new ClientResponse();
+                        clientResponse.setMessageType("clientresponse");
+                        clientResponse.setRecipient(clientRequest.getSender());
+
+                        if(doesKeyExist(requesthash, clientRequest.getAffectedKey()))
+                        {
+                            clientResponse.setResponse("Key: " + clientRequest.getAffectedKey() + " Daten von: " +
+                                    datastorage.get(requesthash).get(clientRequest.getAffectedKey()) + " auf " + clientRequest.getValue() + " verändert!");
+                            handleUpdate(requesthash, clientRequest.getAffectedKey(), clientRequest.getValue());
+                        }
+                        else
+                        {
+                            clientResponse.setResponse("Keine Daten für Key: " + clientRequest.getAffectedKey() + " gefunden.");
+                        }
+
+                        returnRequest(clientResponse);
+                        break;
+                    }
+
+                }
             }
-            switch (clientRequest.getRequestType()){
-                case "create":
+            else
+            {
+                switch (clientRequest.getRequestType())
                 {
-                    ClientResponse clientResponse = new ClientResponse();
-                    clientResponse.setRecipient(clientRequest.getSender());
-                    clientResponse.setMessageType("clientresponse");
-                    if(doesKeyExist(requesthash, clientRequest.getAffectedKey()))
+                    case "read":
                     {
-                        clientResponse.setResponse("Key: " + clientRequest.getAffectedKey() + " in Benutzung, bitte update verwenden.");
-                    }
-                    else
-                    {
-                        handleCreate(requesthash, clientRequest.getAffectedKey(), clientRequest.getValue());
-                        clientResponse.setResponse("Daten erfolgreich gespeichert!");
+                        ClientResponse clientResponse = new ClientResponse();
+                        clientResponse.setRecipient(clientRequest.getRecipient());
+                        clientResponse.setMessageType("clientresponse");
+                        if(doesKeyExist(requesthash, clientRequest.getAffectedKey()))
+                        {
+                            clientResponse.setResponse(datastorage.get(requesthash).get(clientRequest.getAffectedKey()));
+                        }
+                        else
+                        {
+                            clientResponse.setResponse(null);
+                        }
+                        returnRequest(clientResponse);
+                        break;
                     }
 
-                    returnRequest(clientResponse);
-                    break;
                 }
-                case "read":
-                {
-                    ClientResponse clientResponse = new ClientResponse();
-                    clientResponse.setRecipient(clientRequest.getSender());
-                    clientResponse.setMessageType("clientresponse");
-                    if(doesKeyExist(requesthash, clientRequest.getAffectedKey()))
-                    {
-                        clientResponse.setResponse(datastorage.get(requesthash).get(clientRequest.getAffectedKey()));
-                    }
-                    else
-                    {
-                        clientResponse.setResponse("Keine Daten für Key: " + clientRequest.getAffectedKey() + " gefunden.");
-                    }
-                    returnRequest(clientResponse);
-                    break;
-                }
-                case "delete":
-                {
-                    ClientResponse clientResponse = new ClientResponse();
-                    clientResponse.setRecipient(clientRequest.getSender());
-                    clientResponse.setMessageType("clientresponse");
-                    if(doesKeyExist(requesthash, clientRequest.getAffectedKey()))
-                    {
-                        clientResponse.setResponse("Key: " + clientRequest.getAffectedKey() + " mit Daten: " +
-                                datastorage.get(requesthash).get(clientRequest.getAffectedKey()) + " gelöscht");
-                        handleDelete(requesthash, clientRequest.getAffectedKey());
-                    }
-                    else
-                    {
-                        clientResponse.setResponse("Keine Daten für Key: " + clientRequest.getAffectedKey() + " gefunden.");
-                    }
-                    returnRequest(clientResponse);
-                    break;
-                }
-                case "update":
-                {
-                    ClientResponse clientResponse = new ClientResponse();
-                    clientResponse.setMessageType("clientresponse");
-                    clientResponse.setRecipient(clientRequest.getSender());
-
-                    if(doesKeyExist(requesthash, clientRequest.getAffectedKey()))
-                    {
-                        clientResponse.setResponse("Key: " + clientRequest.getAffectedKey() + " Daten von: " +
-                                datastorage.get(requesthash).get(clientRequest.getAffectedKey()) + " auf " + clientRequest.getValue() + " verändert!");
-                        handleUpdate(requesthash, clientRequest.getAffectedKey(), clientRequest.getValue());
-                    }
-                    else
-                    {
-                        clientResponse.setResponse("Keine Daten für Key: " + clientRequest.getAffectedKey() + " gefunden.");
-                    }
-
-                    returnRequest(clientResponse);
-                    break;
-                }
-
 
             }
 
@@ -265,6 +292,7 @@ public class Node extends DrasylNode
             }
         }
     }
+
 
     public boolean doesKeyExist(int requesthash, String key)
     {
@@ -331,6 +359,15 @@ public class Node extends DrasylNode
                     break;
                 case "heartbeat":
                     Heartbeat heartbeat = (Heartbeat) message;
+                    if(heartbeat.getHeartbeat().equals("clientheartbeat"))
+                    {
+                        NodeResponse nodeResponse = new NodeResponse();
+                        nodeResponse.setMessageType("noderesponse");
+                        nodeResponse.setSender(identity.getAddress().toString());
+                        nodeResponse.setRecipient(message.getSender());
+                        nodeResponse.setNodes(List.of(previousMaster, nextMaster));
+                        send(nodeResponse.getRecipient(), Tools.getMessageAsJSONString(nodeResponse));
+                    }
                     //System.out.println("Heartbeat: " + heartbeat.getBemerkung() + " von " + message.getSender());
                     break;
                 case "confirmation":
@@ -362,8 +399,21 @@ public class Node extends DrasylNode
                     ClientRequest request = (ClientRequest) message;
                     System.out.println("Bemerkung: " + request.getBemerkung() + " Cluster: " +welchercluster);
                     handleClientRequest((ClientRequest) message);
+                    break;
+                case "clientresponse":
+                    ClientResponse response = (ClientResponse) message;
+                    antwortspeicher.get(response.getToken()).add(response);
+                    List<ClientResponse> antworten = antwortspeicher.get(response.getToken());
+                    //TODO: Doppelter ForLoop
+                    int firsthash = antworten.get(0).hashCode();
+                    for(int i = 1; i < antworten.size(); i++) {
+                        if (antworten.get(i).hashCode() == firsthash) {
+                            returnRequest(antworten.get(i));
+                        }
+                    }
 
-                default:
+                    break;
+                    default:
                     //System.out.println("unknown message-type:" + messageType);
                     break;
             }
@@ -383,7 +433,6 @@ public class Node extends DrasylNode
             else if(event instanceof NodeOfflineEvent)
             {
                 System.out.println("NodeOfflineEvent");
-
             }
             else if (event instanceof NodeDownEvent)
             {

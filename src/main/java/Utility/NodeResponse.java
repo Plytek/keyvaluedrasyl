@@ -13,6 +13,7 @@ public class NodeResponse extends Message{
     private List<String> nodes;
 
     public NodeResponse() {
-        messageType = "noderesponse";
     }
+
+
 }

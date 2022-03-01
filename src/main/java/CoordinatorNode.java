@@ -47,13 +47,19 @@ public class CoordinatorNode extends DrasylNode {
             List<Settings> settingsList = createInitialSettings();
             for(Settings settings : settingsList)
             {
-                responseWaitMap.put(settings.getToken(), settings);
+                responseWaitMap.put(settings.getRecipient(), settings);
 
                 messageConfirmer.sendMessage(settings,
-                        (Message m) -> System.out.println("settings: onSuccess!!"),
+                        (Message m) -> {
+                            responseWaitMap.remove(m.getRecipient());
+
+                            if(responseWaitMap.size() == 0)
+                            {
+                                notifyClients();
+                            }
+                        },
                         (Message m) -> System.out.println("settings: onError!!!")
                 );
-                //send(settings.getIdentity(), Tools.getMessageAsJSONString(settings));
 
 
                 try {
@@ -170,15 +176,6 @@ public class CoordinatorNode extends DrasylNode {
                 }
                 case "registerclient": {
                     clients.add(message.getSender());
-                    break;
-                }
-                case "confirm":
-                {
-                    responseWaitMap.remove(message.getToken());
-                    if(responseWaitMap.size() == 0)
-                    {
-                        notifyClients();
-                    }
                     break;
                 }
             }

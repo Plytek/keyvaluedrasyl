@@ -4,13 +4,9 @@ import lombok.Setter;
 import org.drasyl.node.DrasylConfig;
 import org.drasyl.node.DrasylException;
 import org.drasyl.node.DrasylNode;
-import org.drasyl.node.event.Event;
-import org.drasyl.node.event.MessageEvent;
-import org.drasyl.node.event.NodeOnlineEvent;
+import org.drasyl.node.event.*;
 
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 
 @Getter
 @Setter
@@ -21,6 +17,7 @@ public class ClientNode extends DrasylNode
     String coordinator;
     private boolean networkonline = false;
     MessageConfirmer messageConfirmer;
+    Timer timer;
 
     protected ClientNode() throws DrasylException {
         messageConfirmer = new MessageConfirmer(this);
@@ -94,24 +91,30 @@ public class ClientNode extends DrasylNode
     }
     }
 
-    public void sendHeartbeat() {
-        for (String node : mainnodes) {
-            Heartbeat heartbeat = new Heartbeat();
-            heartbeat.setSender(identity.getAddress().toString());
-            heartbeat.setRecipient(node);
-            heartbeat.updateTimestamp();
-            heartbeat.setMessageType("heartbeat");
-            heartbeat.setHeartbeat("clientheartbeat");
-            messageConfirmer.sendMessage(heartbeat, m -> {
+    public void sendHeartbeat(int intervall) {
+        timer = new Timer();
 
-            }, m-> {
-                mainnodes.remove(node);
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                for (String node : mainnodes) {
+                    Heartbeat heartbeat = new Heartbeat();
+                    heartbeat.setSender(identity.getAddress().toString());
+                    heartbeat.setRecipient(node);
+                    heartbeat.updateTimestamp();
+                    heartbeat.setMessageType("heartbeat");
+                    heartbeat.setHeartbeat("clientheartbeat");
+                    messageConfirmer.sendMessage(heartbeat, m -> {
+                        System.out.println(mainnodes);
+                    }, m-> {
+                        mainnodes.remove(node);
 
-            });
-
+                    });
+                }
             }
-        }
+        },0 , intervall);
 
+}
 
     @Override
     public void onEvent(Event event) {
@@ -120,7 +123,7 @@ public class ClientNode extends DrasylNode
         {
             Message message = null;
             message = Tools.getMessageFromEvent(e);
-
+            messageConfirmer.receiveMessage(message);
             switch (message.getMessageType())
             {
                 case "clientresponse":
@@ -135,21 +138,21 @@ public class ClientNode extends DrasylNode
                     mainnodes = response.getNodes();
                     networkonline = true;
                     responsevalue = "NETWORK ONLINE!";
+                    sendHeartbeat(5000);
                     break;
                 }
                 case "noderesponse": {
                     NodeResponse response = (NodeResponse) message;
                     for(String address : response.getNodes()) {
-                        if(!mainnodes.contains(address)) {
+                        if (!mainnodes.contains(address)) {
                             mainnodes.add(address);
-                            System.out.println(mainnodes);
                         }
                     }
+                    break;
                 }
-
                 default:
                 {
-                    System.out.println("Hier gibts nix zu sehen");
+                    break;
                 }
             }
 
@@ -163,6 +166,10 @@ public class ClientNode extends DrasylNode
             message.generateToken();
 
             send(message.getRecipient(), Tools.getMessageAsJSONString(message));
+        }
+        else if(event instanceof NodeDownEvent e)
+        {
+            timer.cancel();
         }
     }
 }
