@@ -13,6 +13,7 @@ import java.util.*;
 @Setter
 public class Node extends DrasylNode
 {
+    //K
     private Timer timer = new Timer();
     private boolean isMaster = false;
     private String previousMaster;
