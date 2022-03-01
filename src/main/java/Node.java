@@ -27,7 +27,7 @@ public class Node extends DrasylNode
 
     private Map<Integer, Map<String,String>> datastorage = new HashMap<>();
 
-    private Map<String, ConsensData> consensDataCollection = new HashMap<>();
+    private Map<String, ConsensData> consensDataCollection = Collections.synchronizedMap(new HashMap<>());
     private MessageConfirmer messageConfirmer;
 
     protected Node(DrasylConfig config) throws DrasylException {
@@ -138,7 +138,6 @@ public class Node extends DrasylNode
     public void handleClientRequest(ClientRequest clientRequest)
     {
         int requesthash = clientRequest.verteilerHash();
-        String tempvalue = null;
 
         System.out.println("Hashcode: " + requesthash);
         if(requesthash >= range.getLow() && requesthash <= range.getHigh())
@@ -224,7 +223,7 @@ public class Node extends DrasylNode
 
                         consensDataCollection.remove(clientRequest.getToken());
                     }
-                }, 10000); // 10s delay
+                }, 5000); // 5s delay
 
 
             }
@@ -379,6 +378,21 @@ public class Node extends DrasylNode
     }
 
 
+    // synchronized flag -> sind hier gleichzeitig nur einmal drin!
+    private synchronized void handleClientResponse(ClientResponse clientResponse) {
+        if(consensDataCollection.containsKey(clientResponse.getToken())) {
+            ConsensData consensData = consensDataCollection.get(clientResponse.getToken());
+            consensData.getClientResponses().add(clientResponse);
+
+            ClientResponse consensResponse = consensData.findConsens();
+            if(consensResponse != null)
+            {
+                consensDataCollection.remove(clientResponse.getToken());
+                consensResponse.setRecipient(consensData.getClientRequest().getSender());
+                returnRequest(consensResponse);
+            }
+        }
+    }
 
 
     @Override
@@ -449,20 +463,7 @@ public class Node extends DrasylNode
                     handleClientRequest((ClientRequest) message);
                     break;
                 case "clientresponse":
-                    ClientResponse response = (ClientResponse) message;
-
-                    if(consensDataCollection.containsKey(response.getToken())) {
-                        ConsensData consensData = consensDataCollection.get(response.getToken());
-                        consensData.getClientResponses().add(response);
-
-                        ClientResponse consensResponse = consensData.findConsens();
-                        if(consensResponse != null)
-                        {
-                            consensDataCollection.remove(response.getToken());
-                            consensResponse.setRecipient(consensData.getClientRequest().getSender());
-                            returnRequest(consensResponse);
-                        }
-                    }
+                    handleClientResponse((ClientResponse) message);
                     break;
                 default:
                     //System.out.println("unknown message-type:" + messageType);

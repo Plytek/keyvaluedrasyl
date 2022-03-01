@@ -13,35 +13,18 @@ import java.util.function.Consumer;
 // Nach ein paar Timeouts wird aufgehört
 public class MessageConfirmer {
     // Der Knoten mit dem gesendet/empfangen wird
-    private final DrasylNode node;
+    private DrasylNode node;
 
-    // Map von Token zu Messages, bei denen noch auf ein Confirm gewartet wird
-    private final Map<String, MessageConfirmData> messages;
+    // Map von Token zu Message-Daten, bei denen noch auf ein Confirm gewartet wird
+    private Map<String, MessageConfirmData> messages;
+
+    // Timer für die regelmäßige Prüfung auf Timeouts
+    private Timer timer;
 
     // Starte den MessageConfirmer für die eigene Adresse
     public MessageConfirmer(DrasylNode node) {
         this.node = node;
-        this.messages = Collections.synchronizedMap(new HashMap<>());
-
-        // Timer für die automatische Durchführung
-        // timer bleibt am leben, da ein neuer Background-Thread erzeugt wird
-        // der background-thread behält eine referenz auf den timer -> wird NIE garbage-collected
-        Timer timer = new Timer();
-        timer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                // synchronized muss verwendet werden bei Iteration über synchronized-collection
-                // siehe Dokumentation von "synchronizedMap"
-                Set<String> tokens = messages.keySet();
-
-                synchronized (messages) {
-                    Iterator<String> i = tokens.iterator();
-                    while (i.hasNext()) {
-                        checkTimeoutMessage(i.next());
-                    }
-                }
-            }
-        }, 0, 1000);
+        this.messages = new HashMap<>();
     }
 
     // Sende eine Nachricht die von dem Empfänger bestätigt werden muss
@@ -50,7 +33,7 @@ public class MessageConfirmer {
     // Die automatische Prüfung erfolgt in "startMessageConfirmer" bzw. "checkTimeoutMessage"
     // onSuccess wird bei empfangener Bestätigung ausgeführt
     // onError wird bei endgültigem Timeout ausgeführt
-    public void sendMessage(Message message, Runnable onSuccess, Runnable onError)
+    public synchronized void sendMessage(Message message, Runnable onSuccess, Runnable onError)
     {
         long currentTime = System.currentTimeMillis();
         message.setSender(node.identity().getAddress().toString());
@@ -61,25 +44,34 @@ public class MessageConfirmer {
         MessageConfirmData data = new MessageConfirmData(message, onSuccess, onError);
         messages.put(message.getToken(), data);
         node.send(message.getRecipient(), Tools.getMessageAsJSONString(message));
+
+        if(timer == null) {
+            timer = new Timer();
+            timer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    checkAllTimeouts();
+                }
+            }, 0, 1000);
+        }
     }
 
     // Muss vom Knoten bei jeder ankommenden Message aufgerufen werden !
     // Hiermit kann geprüft werden, ob Bestätigungen angekommen sind
-    public void receiveMessage(Message message){
-            String token = message.getToken();
+    public synchronized void receiveMessage(Message message){
+        String token = message.getToken();
 
-            if(message.isConfirmRequested()) {
-                // Sende Confirmation, falls angefordert
-                sendConfirmation(token, message.getSender());
-            }
+        if (message.isConfirmRequested()) {
+            // Sende Confirmation, falls angefordert
+            sendConfirmation(token, message.getSender());
+        }
 
-            if(messages.containsKey(token))
-            {
-                // Entferne Nachricht aus Behälter, falls confirm eingetroffen
-                // Führe auch onSuccess aus
-                messages.get(token).onSuccess.run();
-                messages.remove(token);
-            }
+        if (messages.containsKey(token)) {
+            // Entferne Nachricht aus Behälter, falls confirm eingetroffen
+            // Führe auch onSuccess aus
+            messages.get(token).onSuccess.run();
+            messages.remove(token);
+        }
     }
 
     // Sende eine Bestätigung auf eine Nachricht
@@ -93,6 +85,16 @@ public class MessageConfirmer {
         message.setConfirmRequested(false); // wollen keine Endlos-Schleife!
 
         node.send(receiver, Tools.getMessageAsJSONString(message));
+    }
+
+    // Prüfe timeouts für alle Nachrichten
+    private synchronized void checkAllTimeouts() {
+        Set<String> tokens = new HashSet<>(messages.keySet());
+
+        for(String token : tokens)
+        {
+            checkTimeoutMessage(token);
+        }
     }
 
     // Prüfe ob für eine Nachricht aus confirmMessages ein Timeout besteht
@@ -116,11 +118,11 @@ public class MessageConfirmer {
             System.out.println("Timeout Nummer " + timeouts + " für token = " + token);
 
             if(timeouts >= 3) {
-                // maximal 3 Timeouts
+                // endgültig fehlgeschlagen nach 3 timeouts
                 data.onError.run();
                 messages.remove(token);
             } else {
-                // ansonsten erneut zustellen
+                // ansonsten erneut senden
                 node.send(data.message.getRecipient(), Tools.getMessageAsJSONString(data.message));
             }
         }
