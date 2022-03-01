@@ -8,6 +8,7 @@ import org.drasyl.node.DrasylNode;
 import org.drasyl.node.event.*;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
 @Setter
@@ -25,9 +26,9 @@ public class Node extends DrasylNode
     private int hashrange;
     private boolean isOnline;
 
-    private Map<Integer, Map<String,String>> datastorage = new HashMap<>();
+    private Map<Integer, Map<String,String>> datastorage = new ConcurrentHashMap<>();
 
-    private Map<String, ConsensData> consensDataCollection = new HashMap<>();
+    private Map<String, ConsensData> consensDataCollection = new ConcurrentHashMap<>();
     private MessageConfirmer messageConfirmer;
 
     protected Node(DrasylConfig config) throws DrasylException {
@@ -372,7 +373,7 @@ public class Node extends DrasylNode
 
     public void handleCreate(int requesthash, String key, String value)
     {
-        datastorage.computeIfAbsent(requesthash, k -> new HashMap<>()).put(key, value);
+        datastorage.computeIfAbsent(requesthash, k -> new ConcurrentHashMap<>()).put(key, value);
 
     }
 
@@ -422,14 +423,13 @@ public class Node extends DrasylNode
                         nodeResponse.setNodes(Set.of(previousMaster, nextMaster));
                         send(nodeResponse.getRecipient(), Tools.getMessageAsJSONString(nodeResponse));
                     }
-                    //System.out.println("Heartbeat: " + heartbeat.getBemerkung() + " von " + message.getSender());
                     break;
                 case "settings":
                     Settings settings = (Settings) message;
 
                         isMaster = settings.isMaster();
                         List<String> cluster = settings.getLocalcluster();
-                        if(localCluster == null) localCluster = new HashMap<>();
+                        if(localCluster == null) localCluster = new ConcurrentHashMap<>();
                         for(int i = 0; i < cluster.size(); i++)
                         {
                             boolean master;
@@ -468,7 +468,6 @@ public class Node extends DrasylNode
                     }
                     break;
                 default:
-                    //System.out.println("unknown message-type:" + messageType);
                     break;
             }
         }
@@ -492,10 +491,6 @@ public class Node extends DrasylNode
             {
                 isOnline = false;
                 isMaster = false;
-            }
-            else
-            {
-                //System.out.println("unknown drasyl-event: " + event);
             }
         }
     }
