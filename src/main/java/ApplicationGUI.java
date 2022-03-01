@@ -72,10 +72,10 @@ public class ApplicationGUI {
                 {
                     if (coordinatorAddress.equals(coordinator.identity().getAddress().toString()) && !coordinator.isOnline())
                     {
-
+                        JOptionPane.showMessageDialog(frame, "CoordinatorNode wurde erstellt aber noch nicht gestartet, ist aber als Coordinator eingestellt. Bitte andere Addresse setzen oder CoordinatorNode starten");
+                        return;
                     }
-                    JOptionPane.showMessageDialog(frame, "CoordinatorNode wurde erstellt aber noch nicht gestartet, ist aber als Coordinator eingestellt. Bitte andere Addresse setzen oder CoordinatorNode starten");
-                    return;
+
                 }
                 for (Node n : nodes)
                 {
