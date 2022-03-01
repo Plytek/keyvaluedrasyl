@@ -15,7 +15,7 @@ public class ClientNode extends DrasylNode
     List<String> mainnodes;
     String responsevalue = "";
     String coordinator;
-    private boolean networkonline = false;
+    private boolean networkonline = true;
     MessageConfirmer messageConfirmer;
     Timer timer;
 
