@@ -13,7 +13,6 @@ import java.util.*;
 @Setter
 public class Node extends DrasylNode
 {
-    //Hallo
     private Timer timer = new Timer();
     private boolean isMaster = false;
     private String previousMaster;
@@ -146,10 +145,36 @@ public class Node extends DrasylNode
         System.out.println("Hashcode: " + requesthash);
         if(requesthash >= range.getLow() && requesthash <= range.getHigh())
         {
+            clientRequest.setRecipient(identity.getAddress().toString());
             if(isMaster)
             {
+                ClientResponse clientResponse;
+                switch (clientRequest.getRequestType()) {
+                    case "create": {
+                        clientResponse = createClientResponse(requesthash, clientRequest);
+
+                        break;
+                    }
+                    case "read": {
+                        clientResponse = readClientResponse(requesthash, clientRequest);
+                        break;
+                    }
+                    case "delete": {
+                        clientResponse = deleteClientResponse(requesthash, clientRequest);
+                        break;
+                    }
+                    case "update": {
+                        clientResponse = updateClientResponse(requesthash, clientRequest);
+                        break;
+                    }
+                    default:
+                        clientResponse = new ClientResponse();
+                        clientResponse.setBemerkung("You fucked up");
+                }
+
                 ConsensData consensData = new ConsensData();
                 consensData.setClientRequest(clientRequest);
+                consensData.getClientResponses().add(clientResponse);
                 consensDataCollection.put(clientRequest.getToken(), consensData);
 
                 for(int i = 0; i < localCluster.size(); i++)
@@ -187,6 +212,10 @@ public class Node extends DrasylNode
                     }
                 }, 10000); // 10s delay
 
+
+            }
+            else
+            {
                 ClientResponse clientResponse;
                 switch (clientRequest.getRequestType()) {
                     case "create": {
@@ -210,30 +239,6 @@ public class Node extends DrasylNode
                         break;
                     }
                 }
-            }
-            else
-            {
-                switch (clientRequest.getRequestType())
-                {
-                    case "read":
-                    {
-                        ClientResponse clientResponse = new ClientResponse();
-                        clientResponse.setRecipient(clientRequest.getRecipient());
-                        clientResponse.setMessageType("clientresponse");
-                        if(doesKeyExist(requesthash, clientRequest.getAffectedKey()))
-                        {
-                            clientResponse.setResponse(datastorage.get(requesthash).get(clientRequest.getAffectedKey()));
-                        }
-                        else
-                        {
-                            clientResponse.setResponse(null);
-                        }
-                        returnRequest(clientResponse);
-                        break;
-                    }
-
-                }
-
             }
 
         }
