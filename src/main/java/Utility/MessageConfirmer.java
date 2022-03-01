@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 @Getter
@@ -19,9 +20,9 @@ public class MessageConfirmer {
     private DrasylNode node;
 
     // Map von Token zu Messages, bei denen noch auf ein Confirm gewartet wird
-    private Map<String, Message> messages = new HashMap<>();
-    private Map<String, Consumer<Message>> onSuccesses = new HashMap<>();
-    private Map<String, Runnable> onErrors = new HashMap<>();
+    private Map<String, Message> messages = new ConcurrentHashMap<>();
+    private Map<String, Consumer<Message>> onSuccesses = new ConcurrentHashMap<>();
+    private Map<String, Runnable> onErrors = new ConcurrentHashMap<>();
 
     // Timer für die automatische Durchführung
     private Timer timer;

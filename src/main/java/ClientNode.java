@@ -12,7 +12,6 @@ import java.util.*;
 @Setter
 public class ClientNode extends DrasylNode
 {
-    //Test
     Set<String> mainnodes = new HashSet<>();
     String responsevalue = "";
     String coordinator;
