@@ -187,95 +187,28 @@ public class Node extends DrasylNode
                     }
                 }, 10000); // 10s delay
 
-                switch (clientRequest.getRequestType()){
-                    case "create":
-                    {
-                        ClientResponse clientResponse = new ClientResponse();
-                        clientResponse.setRecipient(clientRequest.getSender());
-                        clientResponse.setMessageType("clientresponse");
-                        if(doesKeyExist(requesthash, clientRequest.getAffectedKey()))
-                        {
-                            clientResponse.setResponse("Key: " + clientRequest.getAffectedKey() + " in Benutzung, bitte update verwenden.");
-                        }
-                        else
-                        {
-                            handleCreate(requesthash, clientRequest.getAffectedKey(), clientRequest.getValue());
-                            clientResponse.setResponse("Daten erfolgreich gespeichert!");
-                        }
-
+                ClientResponse clientResponse;
+                switch (clientRequest.getRequestType()) {
+                    case "create": {
+                        clientResponse = createClientResponse(requesthash, clientRequest);
                         returnRequest(clientResponse);
                         break;
                     }
-                    case "read":
-                    {
-                        ClientResponse clientResponse = new ClientResponse();
-                        clientResponse.setRecipient(clientRequest.getSender());
-                        clientResponse.setMessageType("clientresponse");
-                        if(doesKeyExist(requesthash, clientRequest.getAffectedKey()))
-                        {
-                            clientResponse.setResponse(datastorage.get(requesthash).get(clientRequest.getAffectedKey()));
-                        }
-                        else
-                        {
-                            clientResponse.setResponse("Keine Daten für Key: " + clientRequest.getAffectedKey() + " gefunden.");
-                        }
-
-                        consensData.getClientResponses().add(clientResponse);
-
-
-                        /*ClientResponse clientResponse = new ClientResponse();
-                        clientResponse.setRecipient(clientRequest.getSender());
-                        clientResponse.setMessageType("clientresponse");
-                        if(doesKeyExist(requesthash, clientRequest.getAffectedKey()))
-                        {
-                            clientResponse.setResponse(datastorage.get(requesthash).get(clientRequest.getAffectedKey()));
-                        }
-                        else
-                        {
-                            clientResponse.setResponse("Keine Daten für Key: " + clientRequest.getAffectedKey() + " gefunden.");
-                        }
-                        returnRequest(clientResponse);
-                        break;*/
-                    }
-                    case "delete":
-                    {
-                        ClientResponse clientResponse = new ClientResponse();
-                        clientResponse.setRecipient(clientRequest.getSender());
-                        clientResponse.setMessageType("clientresponse");
-                        if(doesKeyExist(requesthash, clientRequest.getAffectedKey()))
-                        {
-                            clientResponse.setResponse("Key: " + clientRequest.getAffectedKey() + " mit Daten: " +
-                                    datastorage.get(requesthash).get(clientRequest.getAffectedKey()) + " gelöscht");
-                            handleDelete(requesthash, clientRequest.getAffectedKey());
-                        }
-                        else
-                        {
-                            clientResponse.setResponse("Keine Daten für Key: " + clientRequest.getAffectedKey() + " gefunden.");
-                        }
+                    case "read": {
+                        clientResponse = readClientResponse(requesthash, clientRequest);
                         returnRequest(clientResponse);
                         break;
                     }
-                    case "update":
-                    {
-                        ClientResponse clientResponse = new ClientResponse();
-                        clientResponse.setMessageType("clientresponse");
-                        clientResponse.setRecipient(clientRequest.getSender());
-
-                        if(doesKeyExist(requesthash, clientRequest.getAffectedKey()))
-                        {
-                            clientResponse.setResponse("Key: " + clientRequest.getAffectedKey() + " Daten von: " +
-                                    datastorage.get(requesthash).get(clientRequest.getAffectedKey()) + " auf " + clientRequest.getValue() + " verändert!");
-                            handleUpdate(requesthash, clientRequest.getAffectedKey(), clientRequest.getValue());
-                        }
-                        else
-                        {
-                            clientResponse.setResponse("Keine Daten für Key: " + clientRequest.getAffectedKey() + " gefunden.");
-                        }
-
+                    case "delete": {
+                        clientResponse = deleteClientResponse(requesthash, clientRequest);
                         returnRequest(clientResponse);
                         break;
                     }
-
+                    case "update": {
+                        clientResponse = updateClientResponse(requesthash, clientRequest);
+                        returnRequest(clientResponse);
+                        break;
+                    }
                 }
             }
             else
@@ -324,6 +257,75 @@ public class Node extends DrasylNode
         }
     }
 
+    public ClientResponse readClientResponse(int requesthash, ClientRequest clientRequest)
+    {
+        ClientResponse clientResponse = new ClientResponse();
+        clientResponse.setRecipient(clientRequest.getSender());
+        clientResponse.setMessageType("clientresponse");
+        if(doesKeyExist(requesthash, clientRequest.getAffectedKey()))
+        {
+            clientResponse.setResponse(datastorage.get(requesthash).get(clientRequest.getAffectedKey()));
+        }
+        else
+        {
+            clientResponse.setResponse("Keine Daten für Key: " + clientRequest.getAffectedKey() + " gefunden.");
+        }
+        return clientResponse;
+    }
+
+    public ClientResponse updateClientResponse(int requesthash, ClientRequest clientRequest)
+    {
+        ClientResponse clientResponse = new ClientResponse();
+        clientResponse.setMessageType("clientresponse");
+        clientResponse.setRecipient(clientRequest.getSender());
+
+        if(doesKeyExist(requesthash, clientRequest.getAffectedKey()))
+        {
+            clientResponse.setResponse("Key: " + clientRequest.getAffectedKey() + " Daten von: " +
+                    datastorage.get(requesthash).get(clientRequest.getAffectedKey()) + " auf " + clientRequest.getValue() + " verändert!");
+            handleUpdate(requesthash, clientRequest.getAffectedKey(), clientRequest.getValue());
+        }
+        else
+        {
+            clientResponse.setResponse("Keine Daten für Key: " + clientRequest.getAffectedKey() + " gefunden.");
+        }
+        return clientResponse;
+    }
+
+    public ClientResponse deleteClientResponse(int requesthash, ClientRequest clientRequest)
+    {
+        ClientResponse clientResponse = new ClientResponse();
+        clientResponse.setRecipient(clientRequest.getSender());
+        clientResponse.setMessageType("clientresponse");
+        if(doesKeyExist(requesthash, clientRequest.getAffectedKey()))
+        {
+            clientResponse.setResponse("Key: " + clientRequest.getAffectedKey() + " mit Daten: " +
+                    datastorage.get(requesthash).get(clientRequest.getAffectedKey()) + " gelöscht");
+            handleDelete(requesthash, clientRequest.getAffectedKey());
+        }
+        else
+        {
+            clientResponse.setResponse("Keine Daten für Key: " + clientRequest.getAffectedKey() + " gefunden.");
+        }
+        return clientResponse;
+    }
+
+    public ClientResponse createClientResponse(int requesthash, ClientRequest clientRequest)
+    {
+        ClientResponse clientResponse = new ClientResponse();
+        clientResponse.setRecipient(clientRequest.getSender());
+        clientResponse.setMessageType("clientresponse");
+        if(doesKeyExist(requesthash, clientRequest.getAffectedKey()))
+        {
+            clientResponse.setResponse("Key: " + clientRequest.getAffectedKey() + " in Benutzung, bitte update verwenden.");
+        }
+        else
+        {
+            handleCreate(requesthash, clientRequest.getAffectedKey(), clientRequest.getValue());
+            clientResponse.setResponse("Daten erfolgreich gespeichert!");
+        }
+        return clientResponse;
+    }
 
     public boolean doesKeyExist(int requesthash, String key)
     {
