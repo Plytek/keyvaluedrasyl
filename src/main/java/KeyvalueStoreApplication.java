@@ -3,50 +3,77 @@ import org.drasyl.node.DrasylException;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 
 public class KeyvalueStoreApplication {
+    static String coordinatorAddress = "ffc753dc5c344fc6d3fc2f0cab66337e9c05884362fa695363f1507c07870cc6";
 
-    public static void main(String[] args){
+    public static void main(String[] args) throws DrasylException {
 
-        try {
-
+        //try {
+            ApplicationGUI a = new ApplicationGUI();
+            /*List<Node> nodes = new LinkedList<Node>();
+            CoordinatorNode coordinatorNode = new CoordinatorNode();
             DrasylConfig config;
             config = DrasylConfig.newBuilder().identityPath(Path.of("second.identity")).build();
-            CoordinatorNode coordinatorNode = new CoordinatorNode(config);
+            Node node1 = new Node(config);
+            node1.setCoordinator(coordinatorAddress);
             config = DrasylConfig.newBuilder().identityPath(Path.of("third.identity")).build();
             Node node2 = new Node(config);
-            node2.setCoordinator("b1a6343a59f723efb93807b2f71727063bde5469a92a9124d7d0906e767c7899");
+            node2.setCoordinator(coordinatorAddress);
             config = DrasylConfig.newBuilder().identityPath(Path.of("fourth.identity")).build();
             Node node3 = new Node(config);
-            node3.setCoordinator("b1a6343a59f723efb93807b2f71727063bde5469a92a9124d7d0906e767c7899");
+            node3.setCoordinator(coordinatorAddress);
+
+
             config = DrasylConfig.newBuilder().identityPath(Path.of("fifth.identity")).build();
+
             Node node4 = new Node(config);
-            node4.setCoordinator("b1a6343a59f723efb93807b2f71727063bde5469a92a9124d7d0906e767c7899");
+            node4.setCoordinator(coordinatorAddress);
             config = DrasylConfig.newBuilder().identityPath(Path.of("sixth.identity")).build();
             Node node5 = new Node(config);
-            node5.setCoordinator("2daf0e96db01cfbd8575ea645877158b03075bcbd7517166381bdab3019d1f72");
+            node5.setCoordinator(coordinatorAddress);
             config = DrasylConfig.newBuilder().identityPath(Path.of("seventh.identity")).build();
             Node node6 = new Node(config);
-            node6.setCoordinator("2daf0e96db01cfbd8575ea645877158b03075bcbd7517166381bdab3019d1f72");
+            node6.setCoordinator(coordinatorAddress);
             config = DrasylConfig.newBuilder().identityPath(Path.of("eigth.identity")).build();
             Node node7 = new Node(config);
-            node7.setCoordinator("2daf0e96db01cfbd8575ea645877158b03075bcbd7517166381bdab3019d1f72");
+            node7.setCoordinator(coordinatorAddress);
             config = DrasylConfig.newBuilder().identityPath(Path.of("nineth.identity")).build();
             Node node8 = new Node(config);
-            node8.setCoordinator("2daf0e96db01cfbd8575ea645877158b03075bcbd7517166381bdab3019d1f72");
+            node8.setCoordinator(coordinatorAddress);
             config = DrasylConfig.newBuilder().identityPath(Path.of("tenth.identity")).build();
             Node node9 = new Node(config);
-            node9.setCoordinator("2daf0e96db01cfbd8575ea645877158b03075bcbd7517166381bdab3019d1f72");
+            node9.setCoordinator(coordinatorAddress);
 
+            nodes.add(node1);
+            nodes.add(node2);
+            nodes.add(node3);
+            nodes.add(node4);
+            nodes.add(node5);
+            nodes.add(node6);
+            nodes.add(node7);
+            nodes.add(node8);
+            nodes.add(node9);
             coordinatorNode.start();
-            try {
+            ApplicationGUI a = new ApplicationGUI(nodes, coordinatorNode);
+            */
+            /*DrasylConfig config = DrasylConfig.newBuilder().identityPath(Path.of("client.identity")).build();
+            ClientNode c = new ClientNode(config);
+            c.setCoordinator(coordinatorAddress);
+            c.start();
+            GUIController g = new GUIController(c);
+
+
+
+            /*try {
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-/*            node1.start();
+            node1.start();
             try {
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
@@ -63,20 +90,24 @@ public class KeyvalueStoreApplication {
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
-            }*/
-           /* node4.start();
+            }
+
+            node4.start();
             try {
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
             node5.start();
+
             try {
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            node6.start();
+
+            node6.start();*/
+            /*
             try {
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
@@ -95,29 +126,23 @@ public class KeyvalueStoreApplication {
                 e.printStackTrace();
             }
             node9.start();*/
-            ClientNode clientNode = null;
-            try {
-                clientNode = new ClientNode();
-            } catch (DrasylException e) {
-                e.printStackTrace();
-            }
-            clientNode.setMainnodes(coordinatorNode.getMainnodes());
-            testUI(clientNode);
-
-            node2.start();
-            node3.start();
-            node4.start();
 
 
-        } catch (DrasylException e) {
+
+       /* } catch (DrasylException e) {
             e.printStackTrace();
-        }
+        }*/
     }
 
 
-    public static void testUI(ClientNode clientNode)
+    public static void testUI()
     {
-
+        ClientNode clientNode = null;
+        try {
+            clientNode = new ClientNode();
+        } catch (DrasylException e) {
+            e.printStackTrace();
+        }
         clientNode.start();
 
         try {
@@ -125,7 +150,7 @@ public class KeyvalueStoreApplication {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        GUIController guiController = new GUIController(clientNode);
+        //GUIController guiController = new GUIController(clientNode);
 
 
 
