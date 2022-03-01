@@ -109,6 +109,7 @@ public class KeyValueGUI {
                 @Override
                 public void actionPerformed(ActionEvent actionEvent) {
                     clientNode.addMaster(addressTextField.getText());
+                    clientNode.setNetworkonline(true);
                     dispose();
                 }
             });
