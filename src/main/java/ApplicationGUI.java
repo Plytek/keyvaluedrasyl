@@ -59,7 +59,7 @@ public class ApplicationGUI {
         StartNodesButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                if (coordinator == null && (coordinatorAddress == "" || coordinatorAddress == null))
+                if (coordinator == null && (coordinatorAddress.equals("") || coordinatorAddress == null))
                 {
                     int dialogButton = JOptionPane.YES_NO_OPTION;
                     int dialogResult = JOptionPane.showConfirmDialog(frame, "CoordinatorNode wurde noch nicht erstellt und es wurde keine Addresse angegeben. Soll einer erstellt werden?", "Kein CoordinatorNode", dialogButton);
@@ -67,6 +67,10 @@ public class ApplicationGUI {
                         createCoordinator();
                     }
                     else {return;}
+                }
+                else if(!(coordinator == null) && (coordinatorAddress.equals(coordinator.identity().getAddress().toString())))
+                {
+                    JOptionPane.showMessageDialog(frame, "CoordinatorNode wurde erstellt aber noch nicht gestartet, ist aber als Coordinator eingestellt. Bitte andere Addresse setzen oder CoordinatorNode starten");
                 }
                 for (Node n : nodes)
                 {
