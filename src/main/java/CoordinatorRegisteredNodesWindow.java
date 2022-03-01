@@ -9,11 +9,11 @@ public class CoordinatorRegisteredNodesWindow {
     private JTable InfoTable;
     private JPanel panel;
     private JButton schließenButton;
-    private List<String> nodes;
+    private List<Object> nodes;
     private JFrame frame;
     private TableModel tableModel;
 
-    public CoordinatorRegisteredNodesWindow(List<String> list)
+    public CoordinatorRegisteredNodesWindow(List<Object> list)
     {
         nodes = list;
         schließenButton.addActionListener(new ActionListener() {

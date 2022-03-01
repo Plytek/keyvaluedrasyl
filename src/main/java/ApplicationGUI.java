@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.List;
 import java.util.Timer;
+import java.util.concurrent.CompletableFuture;
 
 @Setter
 public class ApplicationGUI {
@@ -22,6 +23,7 @@ public class ApplicationGUI {
     private JButton StopNodesButton;
     private JButton coordinatorNodeButton;
     private JButton coordinatorNodeAdresseButton;
+    private JButton clientNodeUIButton;
     private List<Node> nodes;
     private NodesTableModel tableModel;
     private JFrame frame;
@@ -33,6 +35,8 @@ public class ApplicationGUI {
     private CoordinatorNodeWindow corw;
     private CoordinatorAddressDialog cadrw;
     private ApplicationGUI myself = this;
+    private GUIController clientGUI;
+    private ClientNode client;
 
     /**
      * Erstellt eine GUI, die mit Nodes und CoordinatorNodes arbeiten kann.
@@ -125,6 +129,12 @@ public class ApplicationGUI {
                 }
             }
         });
+        clientNodeUIButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                clientGUI.getJFrame().setVisible(true);
+            }
+        });
         NodesTable.setAutoCreateColumnsFromModel(true);
         frame = new JFrame("Bank on It Node Controller");
         frame.setContentPane(NodesWindow);
@@ -159,7 +169,7 @@ public class ApplicationGUI {
         CreateNodesWindow cnd = new CreateNodesWindow(this);
     }
 
-    public void recieveCreateDialogResults(int n, boolean b)
+    public void recieveCreateDialogResults(int n, boolean coord, boolean client)
     {
         nodes = new ArrayList<>();
         DrasylConfig config;
@@ -175,9 +185,13 @@ public class ApplicationGUI {
                 JOptionPane.showMessageDialog(frame, "Das Erstellen von Node " + i + " ist fehlgeschlagen.");
             }
         }
-        if (b)
+        if (coord)
         {
             createCoordinator();
+        }
+        if(client)
+        {
+            createClient();
         }
         constructUI();
     }
@@ -198,10 +212,30 @@ public class ApplicationGUI {
             coordinator = new CoordinatorNode();
             coordinatorAddress = coordinator.identity().getAddress().toString();
             setCoordinatorAddressInNodes();
+            coordinator.start().toCompletableFuture().join();
+            CompletableFuture.allOf();
         } catch (DrasylException e) {
             e.printStackTrace();
         }
 
+    }
+
+    private void createClient()
+    {
+        try {
+            DrasylConfig config = DrasylConfig.newBuilder().identityPath(Path.of("client.identity")).build();
+            client = new ClientNode(config);
+            if (coordinator != null) {
+                client.setCoordinator(coordinatorAddress);
+            }
+            clientGUI = new GUIController(client);
+            clientGUI.getJFrame().setVisible(false);
+            client.start();
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 
     private void setCoordinatorAddressInNodes()
@@ -209,6 +243,10 @@ public class ApplicationGUI {
         for (Node n : nodes)
         {
             n.setCoordinator(coordinatorAddress);
+        }
+        if (client != null)
+        {
+            client.setCoordinator(coordinatorAddress);
         }
 
     }
