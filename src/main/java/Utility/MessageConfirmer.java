@@ -1,5 +1,6 @@
 package Utility;
 
+import lombok.Getter;
 import org.drasyl.node.DrasylNode;
 
 import java.util.HashMap;
@@ -9,6 +10,7 @@ import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
+@Getter
 // Sorgt für die Zustellung von Messages mit Bestätigungen(confirm) für eine DrasylNode
 // Falls keine Bestätigung kommt, wird nach 5s ein Timeout ausgelöst
 // Nach jedem Timeout wird die Nachricht erneut gesendet

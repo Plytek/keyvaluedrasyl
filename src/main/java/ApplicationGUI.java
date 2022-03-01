@@ -132,7 +132,19 @@ public class ApplicationGUI {
         clientNodeUIButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                clientGUI.getJFrame().setVisible(true);
+                if (clientGUI != null && client != null)
+                {
+                    clientGUI.getJFrame().setVisible(true);
+                }
+                else
+                {
+                    int dialogButton = JOptionPane.YES_NO_OPTION;
+                    int dialogResult = JOptionPane.showConfirmDialog(frame, "ClientNode wurde noch nicht erstellt. Soll einer erstellt werden?", "Kein ClientNode", dialogButton);
+                    if(dialogResult == 0) {
+                        createClient();
+                        clientGUI.getJFrame().setVisible(true);
+                    }
+                }
             }
         });
         NodesTable.setAutoCreateColumnsFromModel(true);
