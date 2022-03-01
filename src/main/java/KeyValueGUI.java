@@ -69,6 +69,7 @@ public class KeyValueGUI {
                     if (n.isMaster())
                     {
                         clientNode.addMaster(n.identity().getAddress().toString());
+                        clientNode.setNetworkonline(true);
                         return;
                     }
                 }

@@ -19,7 +19,7 @@ class GUIControllerTest
       } catch (DrasylException e) {
           e.printStackTrace();
       }
-      GUIController guiController = new GUIController(clientNode);
+      //GUIController guiController = new GUIController(clientNode);
   }
 
   @Test
