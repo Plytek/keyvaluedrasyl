@@ -72,9 +72,8 @@ public class Node extends DrasylNode
         }
         else
         {
-            // TODO: offline node ist secondary
-
-
+            // offline node ist secondary
+            // erstmal nichts zu tun
         }
     }
 
