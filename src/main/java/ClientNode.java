@@ -103,11 +103,11 @@ public class ClientNode extends DrasylNode
                         heartbeat.updateTimestamp();
                         heartbeat.setMessageType("heartbeat");
                         heartbeat.setHeartbeat("clientheartbeat");
-                        messageConfirmer.sendMessage(heartbeat, m -> {
-                        }, () -> {
-                            mainnodes.remove(node);
-
-                        });
+                        messageConfirmer.sendMessage(
+                            heartbeat,
+                            () -> {},
+                            () -> mainnodes.remove(node)
+                        );
                     }
                     }
                 }

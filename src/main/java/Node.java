@@ -97,13 +97,11 @@ public class Node extends DrasylNode
                         heartbeat.setBemerkung("cluster hearbeat");
 
                         messageConfirmer.sendMessage(heartbeat,
-                                (Message m) -> {
-                                    //System.out.println("cluster-heartbeat success from " + m.getSender() + " to " + m.getRecipient());
-                                },
-                                () -> {
-                                    System.out.println("cluster-heartbeat error from " + heartbeat.getSender() + " to " + heartbeat.getRecipient());
-                                    handleClusterOffline(currentnode);
-                                }
+                            () -> {},
+                            () -> {
+                                System.out.println("cluster-heartbeat error from " + heartbeat.getSender() + " to " + heartbeat.getRecipient());
+                                handleClusterOffline(currentnode);
+                            }
                         );
                     }
                 }
@@ -130,9 +128,9 @@ public class Node extends DrasylNode
              message.setBemerkung(oldMaster);
 
              messageConfirmer.sendMessage(
-                     message,
-                     (Message m) -> System.out.println("newmaster onSuccess"),
-                     () -> System.out.println("newmaster onError")
+                 message,
+                 () -> System.out.println("newmaster onSuccess"),
+                 () -> System.out.println("newmaster onError")
              );
          }
     }

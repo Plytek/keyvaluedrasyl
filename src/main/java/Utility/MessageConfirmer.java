@@ -3,65 +3,64 @@ package Utility;
 import lombok.Getter;
 import org.drasyl.node.DrasylNode;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 import java.util.function.Consumer;
 
-@Getter
+
 // Sorgt für die Zustellung von Messages mit Bestätigungen(confirm) für eine DrasylNode
-// Falls keine Bestätigung kommt, wird nach 5s ein Timeout ausgelöst
+// Falls keine Bestätigung kommt, wird nach ein paar Sekunden ein Timeout ausgelöst
 // Nach jedem Timeout wird die Nachricht erneut gesendet
-// Nach 3 Timeouts wird aufgehört
+// Nach ein paar Timeouts wird aufgehört
 public class MessageConfirmer {
     // Der Knoten mit dem gesendet/empfangen wird
-    private DrasylNode node;
+    private final DrasylNode node;
 
     // Map von Token zu Messages, bei denen noch auf ein Confirm gewartet wird
-    private Map<String, Message> messages = new HashMap<>();
-    private Map<String, Consumer<Message>> onSuccesses = new HashMap<>();
-    private Map<String, Runnable> onErrors = new HashMap<>();
-
-    // Timer für die automatische Durchführung
-    private Timer timer;
+    private final Map<String, MessageConfirmData> messages;
 
     // Starte den MessageConfirmer für die eigene Adresse
     public MessageConfirmer(DrasylNode node) {
         this.node = node;
+        this.messages = Collections.synchronizedMap(new HashMap<>());
+
+        // Timer für die automatische Durchführung
+        // timer bleibt am leben, da ein neuer Background-Thread erzeugt wird
+        // der background-thread behält eine referenz auf den timer -> wird NIE garbage-collected
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                // synchronized muss verwendet werden bei Iteration über synchronized-collection
+                // siehe Dokumentation von "synchronizedMap"
+                Set<String> tokens = messages.keySet();
+
+                synchronized (messages) {
+                    Iterator<String> i = tokens.iterator();
+                    while (i.hasNext()) {
+                        checkTimeoutMessage(i.next());
+                    }
+                }
+            }
+        }, 0, 1000);
     }
 
     // Sende eine Nachricht die von dem Empfänger bestätigt werden muss
-    // Falls keine Bestätigung kommt, gibt es nach 5s einen Timeout und die Nachricht wird erneut gesendet
-    // Nach 3 Timeouts wird aufgegeben
+    // Falls keine Bestätigung kommt, gibt es nach ein paar Sekunden einen Timeout und die Nachricht wird erneut gesendet
+    // Nach ein paar Timeouts wird aufgegeben
     // Die automatische Prüfung erfolgt in "startMessageConfirmer" bzw. "checkTimeoutMessage"
-    // onSuccess erhält die Antwort auf die gesendete Nachricht
-    public void sendMessage(Message message, Consumer<Message> onSuccess, Runnable onError)
+    // onSuccess wird bei empfangener Bestätigung ausgeführt
+    // onError wird bei endgültigem Timeout ausgeführt
+    public void sendMessage(Message message, Runnable onSuccess, Runnable onError)
     {
         long currentTime = System.currentTimeMillis();
         message.setSender(node.identity().getAddress().toString());
         message.setTime(currentTime);
         message.setConfirmRequested(true);
         message.generateToken();
-        messages.put(message.getToken(), message);
-        onSuccesses.put(message.getToken(), onSuccess);
-        onErrors.put(message.getToken(), onError);
-        node.send(message.getRecipient(), Tools.getMessageAsJSONString(message));
 
-        if(timer == null)
-        {
-            // timer für jede Sekunde
-            timer = new Timer();
-            timer.scheduleAtFixedRate(new TimerTask() {
-                @Override
-                public void run() {
-                    for(String token : messages.keySet()) {
-                        checkTimeoutMessage(token);
-                    }
-                }
-            }, 0, 1000);
-        }
+        MessageConfirmData data = new MessageConfirmData(message, onSuccess, onError);
+        messages.put(message.getToken(), data);
+        node.send(message.getRecipient(), Tools.getMessageAsJSONString(message));
     }
 
     // Muss vom Knoten bei jeder ankommenden Message aufgerufen werden !
@@ -69,67 +68,60 @@ public class MessageConfirmer {
     public void receiveMessage(Message message){
             String token = message.getToken();
 
-            // Entferne Nachricht aus Behälter, falls confirm eingetroffen
-            if(messages.containsKey(token))
-            {
-                onSuccesses.get(token).accept(message);
-
-                messages.remove(token);
-                onSuccesses.remove(token);
-                onErrors.remove(token);
+            if(message.isConfirmRequested()) {
+                // Sende Confirmation, falls angefordert
+                sendConfirmation(token, message.getSender());
             }
 
-            // Sende Confirmation, falls angefordert
-            if(message.isConfirmRequested())
+            if(messages.containsKey(token))
             {
-                sendConfirmation(token, message.getSender());
+                // Entferne Nachricht aus Behälter, falls confirm eingetroffen
+                // Führe auch onSuccess aus
+                messages.get(token).onSuccess.run();
+                messages.remove(token);
             }
     }
 
     // Sende eine Bestätigung auf eine Nachricht
     // Wird von der Klasse automatisch aufgerufen
     private void sendConfirmation(String token, String receiver) {
-        Message message = new Message(
-                "confirm",
-                node.identity().getAddress().toString(),
-                receiver
-        );
-        message.setSender(node.identity().getAddress().toString());
+        String sender =  node.identity().getAddress().toString();
+
+        Message message = new Message("confirm", sender, receiver);
+        message.setSender(sender);
         message.setToken(token);
         message.setConfirmRequested(false); // wollen keine Endlos-Schleife!
+
         node.send(receiver, Tools.getMessageAsJSONString(message));
     }
 
     // Prüfe ob für eine Nachricht aus confirmMessages ein Timeout besteht
-    // Timeout nach 5 Sekunden
+    // Timeout nach ein paar Sekunden
     // Nach jedem Timeout wird Nachricht erneut gesendet bis zu 3mal
-    // Wenn nach 3 Timeouts nicht erfolgreich, wird aufgehört
+    // Wenn nach ein paar Timeouts nicht erfolgreich, wird aufgehört
     private void checkTimeoutMessage(String token)
     {
         long currentTime = System.currentTimeMillis();
-        Message message = messages.get(token);
+        MessageConfirmData data = messages.get(token);
 
-        // nur handeln falls timeout  nach 5 Sekunden
-        if(currentTime - message.getTime() > 3000)
+        // nur handeln falls timeout nach 3 Sekunden
+        if(currentTime - data.message.getTime() > 3000)
         {
             // timeout!
             // counter zählt wie oft bisher timeout aufgetaucht -> jetzt einmal mehr als counter
             // timer updaten für ggf nächsten timeout
-            message.tickCounter();
-            message.updateTimestamp();
-            int timeouts = message.getCounter();
+            data.message.tickCounter();
+            data.message.updateTimestamp();
+            int timeouts = data.message.getCounter();
+            System.out.println("Timeout Nummer " + timeouts + " für token = " + token);
 
-            // maximal 3 Timeouts
             if(timeouts >= 3) {
-                onErrors.get(token).run();
-
+                // maximal 3 Timeouts
+                data.onError.run();
                 messages.remove(token);
-                onSuccesses.remove(token);
-                onErrors.remove(token);
             } else {
-                System.out.println("Timeout Nummer " + timeouts + " für token = " + token);
-                // erneut zustellen
-                node.send(message.getRecipient(), Tools.getMessageAsJSONString(message));
+                // ansonsten erneut zustellen
+                node.send(data.message.getRecipient(), Tools.getMessageAsJSONString(data.message));
             }
         }
     }

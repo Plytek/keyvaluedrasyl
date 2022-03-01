@@ -51,15 +51,15 @@ public class CoordinatorNode extends DrasylNode {
                 responseWaitMap.put(settings.getRecipient(), settings);
 
                 messageConfirmer.sendMessage(settings,
-                        (Message m) -> {
-                            responseWaitMap.remove(m.getSender());
-                            if(responseWaitMap.size() == 0)
-                            {
-                                notifyClients();
-                                System.out.println("Erfolg");
-                            }
-                        },
-                        () -> System.out.println("settings: onError!!!")
+                    () -> {
+                        responseWaitMap.remove(settings.getRecipient());
+                        if(responseWaitMap.size() == 0)
+                        {
+                            notifyClients();
+                            System.out.println("Erfolg");
+                        }
+                    },
+                    () -> System.out.println("settings: onError!!!")
                 );
 
 
