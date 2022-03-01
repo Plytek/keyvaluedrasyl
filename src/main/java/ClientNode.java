@@ -139,7 +139,7 @@ public class ClientNode extends DrasylNode
                 case "networkonline":
                 {
                     NodeResponse response = (NodeResponse) message;
-                    //mainnodes = response.getNodes();
+                    mainnodes = response.getNodes();
                     networkonline = true;
                     responsevalue = "NETWORK ONLINE!";
                     System.out.println("Event received: " + event);

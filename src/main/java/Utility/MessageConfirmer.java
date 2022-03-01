@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 // Sorgt für die Zustellung von Messages mit Bestätigungen(confirm) für eine DrasylNode
@@ -17,9 +18,10 @@ public class MessageConfirmer {
     private DrasylNode node;
 
     // Map von Token zu Messages, bei denen noch auf ein Confirm gewartet wird
-    private Map<String, Message> messages = new HashMap<>();
-    private Map<String, Consumer<Message>> onSuccesses = new HashMap<>();
-    private Map<String, Runnable> onErrors = new HashMap<>();
+    // Messages können gleichzeitig ankommen -> Threadsafe ConcurrentHashmap verwenden
+    private Map<String, Message> messages = new ConcurrentHashMap<>();
+    private Map<String, Consumer<Message>> onSuccesses = new ConcurrentHashMap<>();
+    private Map<String, Runnable> onErrors = new ConcurrentHashMap<>();
 
     // Timer für die automatische Durchführung
     private Timer timer;
