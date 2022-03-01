@@ -20,9 +20,9 @@ public class MessageConfirmer {
     private DrasylNode node;
 
     // Map von Token zu Messages, bei denen noch auf ein Confirm gewartet wird
-    private Map<String, Message> messages = new ConcurrentHashMap<>();
-    private Map<String, Consumer<Message>> onSuccesses = new ConcurrentHashMap<>();
-    private Map<String, Runnable> onErrors = new ConcurrentHashMap<>();
+    private Map<String, Message> messages = new HashMap<>();
+    private Map<String, Consumer<Message>> onSuccesses = new HashMap<>();
+    private Map<String, Runnable> onErrors = new HashMap<>();
 
     // Timer für die automatische Durchführung
     private Timer timer;
