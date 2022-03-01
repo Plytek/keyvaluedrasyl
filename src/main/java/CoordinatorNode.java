@@ -18,7 +18,7 @@ public class CoordinatorNode extends DrasylNode {
     List<String> mainnodes = new ArrayList<>();
     List<String> clients = new ArrayList<>();
     Map<String, Message> responseWaitMap = new HashMap<>();
-    private int maxnodes = 9;
+    private int maxnodes = 3;
     //int range = Integer.MAX_VALUE-1;
     private int range = 9998;
     private int clustersize = 3;

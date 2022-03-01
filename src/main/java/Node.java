@@ -140,18 +140,19 @@ public class Node extends DrasylNode
     public void handleClientRequest(ClientRequest clientRequest)
     {
         int requesthash = clientRequest.verteilerHash();
+        String tempvalue = null;
 
         System.out.println("Hashcode: " + requesthash);
         if(requesthash >= range.getLow() && requesthash <= range.getHigh())
         {
-            clientRequest.setRecipient(identity.getAddress().toString());
+
             if(isMaster)
             {
+                clientRequest.setRecipient(identity.getAddress().toString());
                 ClientResponse clientResponse;
                 switch (clientRequest.getRequestType()) {
                     case "create": {
                         clientResponse = createClientResponse(requesthash, clientRequest);
-
                         break;
                     }
                     case "read": {
@@ -169,6 +170,7 @@ public class Node extends DrasylNode
                     default:
                         clientResponse = new ClientResponse();
                         clientResponse.setBemerkung("You fucked up");
+                        break;
                 }
 
                 ConsensData consensData = new ConsensData();
@@ -198,12 +200,27 @@ public class Node extends DrasylNode
                             ClientResponse consensResponse = consensData.findConsens();
 
                             if(consensResponse != null) {
+                                consensResponse.setRecipient(consensData.getClientRequest().getSender());
                                 returnRequest(consensResponse);
                             } else {
+                                switch (clientRequest.getRequestType()){
+                                    case "create":
+                                        handleDelete(requesthash, clientRequest.getAffectedKey());
+                                        break;
+                                    case "delete":
+                                        handleCreate(requesthash, clientRequest.getAffectedKey(), clientResponse.getOldvalue());
+                                        break;
+                                    case "update":
+                                        if(clientResponse.getOldvalue() != null)
+                                        {
+                                            handleUpdate(requesthash, clientRequest.getAffectedKey(), clientResponse.getOldvalue());
+                                        }
+                                }
                                 ClientResponse failedConsensResponse = new ClientResponse();
                                 failedConsensResponse.setRecipient(consensData.getClientRequest().getSender());
                                 failedConsensResponse.setMessageType("clientresponse");
                                 failedConsensResponse.setResponse("Failed to reach Consensus!");
+                                returnRequest(failedConsensResponse);
                             }
                         }
 
@@ -264,7 +281,7 @@ public class Node extends DrasylNode
     public ClientResponse readClientResponse(int requesthash, ClientRequest clientRequest)
     {
         ClientResponse clientResponse = new ClientResponse();
-        clientResponse.setRecipient(clientRequest.getSender());
+        clientResponse.setRecipient(clientRequest.getRecipient());
         clientResponse.setMessageType("clientresponse");
         if(doesKeyExist(requesthash, clientRequest.getAffectedKey()))
         {
@@ -285,6 +302,7 @@ public class Node extends DrasylNode
 
         if(doesKeyExist(requesthash, clientRequest.getAffectedKey()))
         {
+            clientResponse.setOldvalue(datastorage.get(requesthash).get(clientRequest.getAffectedKey()));
             clientResponse.setResponse("Key: " + clientRequest.getAffectedKey() + " Daten von: " +
                     datastorage.get(requesthash).get(clientRequest.getAffectedKey()) + " auf " + clientRequest.getValue() + " verändert!");
             handleUpdate(requesthash, clientRequest.getAffectedKey(), clientRequest.getValue());
@@ -303,6 +321,7 @@ public class Node extends DrasylNode
         clientResponse.setMessageType("clientresponse");
         if(doesKeyExist(requesthash, clientRequest.getAffectedKey()))
         {
+            clientResponse.setOldvalue(datastorage.get(requesthash).get(clientRequest.getAffectedKey()));
             clientResponse.setResponse("Key: " + clientRequest.getAffectedKey() + " mit Daten: " +
                     datastorage.get(requesthash).get(clientRequest.getAffectedKey()) + " gelöscht");
             handleDelete(requesthash, clientRequest.getAffectedKey());
@@ -448,6 +467,7 @@ public class Node extends DrasylNode
                         if(consensResponse != null)
                         {
                             consensDataCollection.remove(response.getToken());
+                            consensResponse.setRecipient(consensData.getClientRequest().getSender());
                             returnRequest(consensResponse);
                         }
                     }

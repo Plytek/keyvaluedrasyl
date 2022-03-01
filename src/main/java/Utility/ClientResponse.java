@@ -10,6 +10,7 @@ import java.util.Objects;
 public class ClientResponse extends Message
 {
     private String response;
+    private String oldvalue;
 
     public ClientResponse() {
     }
