@@ -12,10 +12,10 @@ import java.util.*;
 @Setter
 public class ClientNode extends DrasylNode
 {
-    List<String> mainnodes;
+    Set<String> mainnodes = new HashSet<>();
     String responsevalue = "";
     String coordinator;
-    private boolean networkonline = true;
+    private boolean networkonline = false;
     MessageConfirmer messageConfirmer;
     Timer timer;
 
@@ -38,10 +38,11 @@ public class ClientNode extends DrasylNode
     {
         if (networkonline) {
             Random rand = new Random();
-            String address = mainnodes.get(rand.nextInt(mainnodes.size()));
+            String address = (String) mainnodes.toArray()[rand.nextInt(mainnodes.size())];
             ClientRequest request = new ClientRequest("create", key, value);
             request.setRecipient(address);
             request.setSender(identity().getAddress().toString());
+            responsevalue = "Waiting for Server response...";
             send(address, Tools.getMessageAsJSONString(request));
         } else { responsevalue = "NETWORK OFFLINE!\nWait for it to start or contact the Administrator";
         }
@@ -51,13 +52,14 @@ public class ClientNode extends DrasylNode
     {
         if (networkonline) {
             Random rand = new Random();
-            String address = mainnodes.get(rand.nextInt(mainnodes.size()));
+            String address = (String) mainnodes.toArray()[rand.nextInt(mainnodes.size())];
             ClientRequest request = new ClientRequest("delete", key);
             request.setRecipient(address);
             request.setSender(identity().getAddress().toString());
+            responsevalue = "Waiting for Server response...";
             send(address, Tools.getMessageAsJSONString(request));
         }
-        else { responsevalue = "NETWORK OFFLINE!\n Wait for it to start or contact the Administrator";
+        else { responsevalue = "NETWORK OFFLINE!\nWait for it to start or contact the Administrator";
     }
 
     }
@@ -66,13 +68,14 @@ public class ClientNode extends DrasylNode
     {
         if (networkonline) {
             Random rand = new Random();
-            String address = mainnodes.get(rand.nextInt(mainnodes.size()));
+            String address = (String) mainnodes.toArray()[rand.nextInt(mainnodes.size())];
             ClientRequest request = new ClientRequest("update", key, value);
             request.setRecipient(address);
             request.setSender(identity().getAddress().toString());
+            responsevalue = "Waiting for Server response...";
             send(address, Tools.getMessageAsJSONString(request));
         }
-        else { responsevalue = "NETWORK OFFLINE!\n Wait for it to start or contact the Administrator";
+        else { responsevalue = "NETWORK OFFLINE!\nWait for it to start or contact the Administrator";
     }
 
     }
@@ -81,40 +84,44 @@ public class ClientNode extends DrasylNode
     {
         if (networkonline) {
             Random rand = new Random();
-            String address = mainnodes.get(rand.nextInt(mainnodes.size()));
+            String address = (String) mainnodes.toArray()[rand.nextInt(mainnodes.size())];
             ClientRequest request = new ClientRequest("read", key);
             request.setRecipient(address);
             request.setSender(identity().getAddress().toString());
+            responsevalue = "Waiting for Server response...";
             send(address, Tools.getMessageAsJSONString(request));
         }
-        else { responsevalue = "NETWORK OFFLINE!\n Wait for it to start or contact the Administrator";
+        else { responsevalue = "NETWORK OFFLINE!\nWait for it to start or contact the Administrator";
     }
     }
 
     public void sendHeartbeat(int intervall) {
         timer = new Timer();
+            timer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    if (mainnodes != null) {
+                    for (String node : mainnodes) {
+                        Heartbeat heartbeat = new Heartbeat();
+                        heartbeat.setSender(identity.getAddress().toString());
+                        heartbeat.setRecipient(node);
+                        heartbeat.updateTimestamp();
+                        heartbeat.setMessageType("heartbeat");
+                        heartbeat.setHeartbeat("clientheartbeat");
+                        messageConfirmer.sendMessage(heartbeat, m -> {
+                            System.out.println(mainnodes);
+                        }, () -> {
+                            mainnodes.remove(node);
 
-        timer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                for (String node : mainnodes) {
-                    Heartbeat heartbeat = new Heartbeat();
-                    heartbeat.setSender(identity.getAddress().toString());
-                    heartbeat.setRecipient(node);
-                    heartbeat.updateTimestamp();
-                    heartbeat.setMessageType("heartbeat");
-                    heartbeat.setHeartbeat("clientheartbeat");
-                    messageConfirmer.sendMessage(heartbeat, m -> {
-                        System.out.println(mainnodes);
-                    }, () -> {
-                        mainnodes.remove(node);
-
-                    });
+                        });
+                    }
+                    }
                 }
-            }
-        },0 , intervall);
+            },0 , intervall);
 
-}
+
+    }
+
 
     @Override
     public void onEvent(Event event) {
@@ -136,7 +143,7 @@ public class ClientNode extends DrasylNode
                 case "networkonline":
                 {
                     NodeResponse response = (NodeResponse) message;
-                    mainnodes = response.getNodes();
+                    //mainnodes = response.getNodes();
                     networkonline = true;
                     responsevalue = "NETWORK ONLINE!";
                     sendHeartbeat(5000);
@@ -147,6 +154,7 @@ public class ClientNode extends DrasylNode
                     for(String address : response.getNodes()) {
                         if (!mainnodes.contains(address)) {
                             mainnodes.add(address);
+                            System.out.println(mainnodes);
                         }
                     }
                     break;
@@ -160,6 +168,7 @@ public class ClientNode extends DrasylNode
         }
         else if(event instanceof NodeOnlineEvent e)
         {
+            sendHeartbeat(5000);
             Message message = new Message();
             message.setMessageType("registerclient");
             message.setRecipient(coordinator);

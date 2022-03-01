@@ -299,13 +299,11 @@ public class Node extends DrasylNode
     {
         ClientResponse clientResponse = new ClientResponse();
         clientResponse.setMessageType("clientresponse");
-        clientResponse.setRecipient(clientRequest.getSender());
-
+        clientResponse.setRecipient(clientRequest.getRecipient());
         if(doesKeyExist(requesthash, clientRequest.getAffectedKey()))
         {
             clientResponse.setOldvalue(datastorage.get(requesthash).get(clientRequest.getAffectedKey()));
-            clientResponse.setResponse("Key: " + clientRequest.getAffectedKey() + " Daten von: " +
-                    datastorage.get(requesthash).get(clientRequest.getAffectedKey()) + " auf " + clientRequest.getValue() + " verändert!");
+            clientResponse.setResponse("Daten erfolgreich geupdatet");
             handleUpdate(requesthash, clientRequest.getAffectedKey(), clientRequest.getValue());
         }
         else
@@ -318,13 +316,12 @@ public class Node extends DrasylNode
     public ClientResponse deleteClientResponse(int requesthash, ClientRequest clientRequest)
     {
         ClientResponse clientResponse = new ClientResponse();
-        clientResponse.setRecipient(clientRequest.getSender());
+        clientResponse.setRecipient(clientRequest.getRecipient());
         clientResponse.setMessageType("clientresponse");
         if(doesKeyExist(requesthash, clientRequest.getAffectedKey()))
         {
             clientResponse.setOldvalue(datastorage.get(requesthash).get(clientRequest.getAffectedKey()));
-            clientResponse.setResponse("Key: " + clientRequest.getAffectedKey() + " mit Daten: " +
-                    datastorage.get(requesthash).get(clientRequest.getAffectedKey()) + " gelöscht");
+            clientResponse.setResponse("Daten erfolgreich gelöscht");
             handleDelete(requesthash, clientRequest.getAffectedKey());
         }
         else
@@ -337,7 +334,7 @@ public class Node extends DrasylNode
     public ClientResponse createClientResponse(int requesthash, ClientRequest clientRequest)
     {
         ClientResponse clientResponse = new ClientResponse();
-        clientResponse.setRecipient(clientRequest.getSender());
+        clientResponse.setRecipient(clientRequest.getRecipient());
         clientResponse.setMessageType("clientresponse");
         if(doesKeyExist(requesthash, clientRequest.getAffectedKey()))
         {
@@ -422,13 +419,10 @@ public class Node extends DrasylNode
                         nodeResponse.setMessageType("noderesponse");
                         nodeResponse.setSender(identity.getAddress().toString());
                         nodeResponse.setRecipient(message.getSender());
-                        nodeResponse.setNodes(List.of(previousMaster, nextMaster));
+                        nodeResponse.setNodes(Set.of(previousMaster, nextMaster));
                         send(nodeResponse.getRecipient(), Tools.getMessageAsJSONString(nodeResponse));
                     }
                     //System.out.println("Heartbeat: " + heartbeat.getBemerkung() + " von " + message.getSender());
-                    break;
-                case "confirmation":
-                    System.out.println("confirmation");
                     break;
                 case "settings":
                     Settings settings = (Settings) message;

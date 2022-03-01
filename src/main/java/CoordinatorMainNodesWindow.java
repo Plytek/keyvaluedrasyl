@@ -3,18 +3,21 @@ import javax.swing.table.TableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class CoordinatorMainNodesWindow {
     private JTable InfoTable;
     private JPanel panel;
     private JButton schließenButton;
-    List<String> nodes;
+    List<Object> nodes;
     TableModel tableModel;
     JFrame frame;
 
-    public CoordinatorMainNodesWindow(List<String> list)
+    public CoordinatorMainNodesWindow(Set<String> list)
     {
-        nodes = list;
+
+        nodes = List.of(list.toArray());
         schließenButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {

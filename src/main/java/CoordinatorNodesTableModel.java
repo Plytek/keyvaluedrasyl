@@ -3,9 +3,9 @@ import java.util.List;
 
 public class CoordinatorNodesTableModel extends AbstractTableModel
 {
-    List<String> nodes;
+    List<Object> nodes;
 
-    public CoordinatorNodesTableModel(List<String> n)
+    public CoordinatorNodesTableModel(List<Object> n)
     {
         nodes = n;
     }

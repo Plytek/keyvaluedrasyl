@@ -4,6 +4,7 @@ import javax.swing.table.TableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -41,7 +42,7 @@ public class CoordinatorNodeWindow {
         zeigeRegistrierteNodesButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                regnw = new CoordinatorRegisteredNodesWindow(node.getRegisterednodes());
+                regnw = new CoordinatorRegisteredNodesWindow(Collections.singletonList(node.getRegisterednodes()));
             }
         });
         zeigeMainNodesButton.addActionListener(new ActionListener() {

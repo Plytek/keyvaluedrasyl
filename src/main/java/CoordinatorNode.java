@@ -10,15 +10,16 @@ import org.drasyl.node.event.NodeDownEvent;
 import org.drasyl.node.event.NodeOnlineEvent;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
 @Setter
 public class CoordinatorNode extends DrasylNode {
     List<String> registerednodes;
-    List<String> mainnodes = new ArrayList<>();
+    Set<String> mainnodes = new HashSet<>();
     List<String> clients = new ArrayList<>();
-    Map<String, Message> responseWaitMap = new HashMap<>();
-    private int maxnodes = 3;
+    Map<String, Message> responseWaitMap = new ConcurrentHashMap<>();
+    private int maxnodes = 9;
     //int range = Integer.MAX_VALUE-1;
     private int range = 9998;
     private int clustersize = 3;
@@ -51,11 +52,11 @@ public class CoordinatorNode extends DrasylNode {
 
                 messageConfirmer.sendMessage(settings,
                         (Message m) -> {
-                            responseWaitMap.remove(m.getRecipient());
-
+                            responseWaitMap.remove(m.getSender());
                             if(responseWaitMap.size() == 0)
                             {
                                 notifyClients();
+                                System.out.println("Erfolg");
                             }
                         },
                         () -> System.out.println("settings: onError!!!")
