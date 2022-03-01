@@ -29,16 +29,11 @@ public class ClientNode extends DrasylNode
         messageConfirmer = new MessageConfirmer(this);
     }
 
-    public void connect(String initialAddresse)
-    {
-
-    }
-
     public void create(String key, String value)
     {
         if (networkonline) {
             Random rand = new Random();
-            String address = (String) mainnodes.toArray()[rand.nextInt(mainnodes.size())];
+            String address = (String) mainnodes.toArray()[rand.nextInt(0, mainnodes.size()-1)];
             ClientRequest request = new ClientRequest("create", key, value);
             request.setRecipient(address);
             request.setSender(identity().getAddress().toString());
@@ -52,7 +47,7 @@ public class ClientNode extends DrasylNode
     {
         if (networkonline) {
             Random rand = new Random();
-            String address = (String) mainnodes.toArray()[rand.nextInt(mainnodes.size())];
+            String address = (String) mainnodes.toArray()[rand.nextInt(0, mainnodes.size()-1)];
             ClientRequest request = new ClientRequest("delete", key);
             request.setRecipient(address);
             request.setSender(identity().getAddress().toString());
@@ -68,7 +63,7 @@ public class ClientNode extends DrasylNode
     {
         if (networkonline) {
             Random rand = new Random();
-            String address = (String) mainnodes.toArray()[rand.nextInt(mainnodes.size())];
+            String address = (String) mainnodes.toArray()[rand.nextInt(0, mainnodes.size()-1)];
             ClientRequest request = new ClientRequest("update", key, value);
             request.setRecipient(address);
             request.setSender(identity().getAddress().toString());
@@ -84,7 +79,7 @@ public class ClientNode extends DrasylNode
     {
         if (networkonline) {
             Random rand = new Random();
-            String address = (String) mainnodes.toArray()[rand.nextInt(mainnodes.size())];
+            String address = (String) mainnodes.toArray()[rand.nextInt(0, mainnodes.size()-1)];
             ClientRequest request = new ClientRequest("read", key);
             request.setRecipient(address);
             request.setSender(identity().getAddress().toString());
@@ -125,7 +120,7 @@ public class ClientNode extends DrasylNode
 
     @Override
     public void onEvent(Event event) {
-        System.out.println("Event received: " + event);
+
         if(event instanceof MessageEvent e)
         {
             Message message = null;
@@ -138,6 +133,7 @@ public class ClientNode extends DrasylNode
                 {
                     ClientResponse response = (ClientResponse) message;
                     responsevalue = response.getResponse();
+                    System.out.println("Event received: " + event);
                     break;
                 }
                 case "networkonline":
@@ -146,6 +142,7 @@ public class ClientNode extends DrasylNode
                     //mainnodes = response.getNodes();
                     networkonline = true;
                     responsevalue = "NETWORK ONLINE!";
+                    System.out.println("Event received: " + event);
                     sendHeartbeat(5000);
                     break;
                 }
