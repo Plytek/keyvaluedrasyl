@@ -106,7 +106,7 @@ public class ClientNode extends DrasylNode
                     heartbeat.setHeartbeat("clientheartbeat");
                     messageConfirmer.sendMessage(heartbeat, m -> {
                         System.out.println(mainnodes);
-                    }, m-> {
+                    }, () -> {
                         mainnodes.remove(node);
 
                     });
@@ -124,6 +124,7 @@ public class ClientNode extends DrasylNode
             Message message = null;
             message = Tools.getMessageFromEvent(e);
             messageConfirmer.receiveMessage(message);
+
             switch (message.getMessageType())
             {
                 case "clientresponse":

@@ -11,7 +11,7 @@ import java.util.function.Consumer;
 // Sorgt für die Zustellung von Messages mit Bestätigungen(confirm) für eine DrasylNode
 // Falls keine Bestätigung kommt, wird nach 5s ein Timeout ausgelöst
 // Nach jedem Timeout wird die Nachricht erneut gesendet
-// Nach 3 Timeouts wird aufgehört -> TODO: Error-Handling nach 3 Timeouts
+// Nach 3 Timeouts wird aufgehört
 public class MessageConfirmer {
     // Der Knoten mit dem gesendet/empfangen wird
     private DrasylNode node;
@@ -19,7 +19,7 @@ public class MessageConfirmer {
     // Map von Token zu Messages, bei denen noch auf ein Confirm gewartet wird
     private Map<String, Message> messages = new HashMap<>();
     private Map<String, Consumer<Message>> onSuccesses = new HashMap<>();
-    private Map<String, Consumer<Message>> onErrors = new HashMap<>();
+    private Map<String, Runnable> onErrors = new HashMap<>();
 
     // Timer für die automatische Durchführung
     private Timer timer;
@@ -27,14 +27,14 @@ public class MessageConfirmer {
     // Starte den MessageConfirmer für die eigene Adresse
     public MessageConfirmer(DrasylNode node) {
         this.node = node;
-
     }
 
     // Sende eine Nachricht die von dem Empfänger bestätigt werden muss
     // Falls keine Bestätigung kommt, gibt es nach 5s einen Timeout und die Nachricht wird erneut gesendet
     // Nach 3 Timeouts wird aufgegeben
     // Die automatische Prüfung erfolgt in "startMessageConfirmer" bzw. "checkTimeoutMessage"
-    public void sendMessage(Message message, Consumer<Message> onSuccess, Consumer<Message> onError)
+    // onSuccess erhält die Antwort auf die gesendete Nachricht
+    public void sendMessage(Message message, Consumer<Message> onSuccess, Runnable onError)
     {
         long currentTime = System.currentTimeMillis();
         message.setSender(node.identity().getAddress().toString());
@@ -69,7 +69,7 @@ public class MessageConfirmer {
             // Entferne Nachricht aus Behälter, falls confirm eingetroffen
             if(messages.containsKey(token))
             {
-                onSuccesses.get(token).accept(messages.get(token));
+                onSuccesses.get(token).accept(message);
 
                 messages.remove(token);
                 onSuccesses.remove(token);
@@ -82,7 +82,6 @@ public class MessageConfirmer {
                 sendConfirmation(token, message.getSender());
             }
     }
-
 
     // Sende eine Bestätigung auf eine Nachricht
     // Wird von der Klasse automatisch aufgerufen
@@ -101,7 +100,7 @@ public class MessageConfirmer {
     // Prüfe ob für eine Nachricht aus confirmMessages ein Timeout besteht
     // Timeout nach 5 Sekunden
     // Nach jedem Timeout wird Nachricht erneut gesendet bis zu 3mal
-    // Wenn nach 3 Timeouts nicht erfolgreich, wird aufgehört -> TODO: Error-Handling bei 3 Timeouts
+    // Wenn nach 3 Timeouts nicht erfolgreich, wird aufgehört
     private void checkTimeoutMessage(String token)
     {
         long currentTime = System.currentTimeMillis();
@@ -119,7 +118,7 @@ public class MessageConfirmer {
 
             // maximal 3 Timeouts
             if(timeouts >= 3) {
-                onErrors.get(token).accept(message);
+                onErrors.get(token).run();
 
                 messages.remove(token);
                 onSuccesses.remove(token);

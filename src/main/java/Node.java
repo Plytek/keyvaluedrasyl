@@ -19,14 +19,15 @@ public class Node extends DrasylNode
     private String nextMaster;
     private String coordinator;
     private NodeRange range;
-    private Map<String, Boolean> localCluster;
+    private Map<String, Boolean> localCluster; // bool wer master ist
+
     private int welchercluster;
     private int hashrange;
     private boolean isOnline;
 
     private Map<Integer, Map<String,String>> datastorage = new HashMap<>();
-    private Map<String, ClientRequest> zwischenspeicher = new HashMap<>();
-    private Map<String, List<ClientResponse>> antwortspeicher = new HashMap<>();
+
+    private Map<String, ConsensData> consensDataCollection = new HashMap<>();
     private MessageConfirmer messageConfirmer;
 
     protected Node(DrasylConfig config) throws DrasylException {
@@ -100,8 +101,8 @@ public class Node extends DrasylNode
                                 (Message m) -> {
                                     //System.out.println("cluster-heartbeat success from " + m.getSender() + " to " + m.getRecipient());
                                 },
-                                (Message m) -> {
-                                    System.out.println("cluster-heartbeat error from " + m.getSender() + " to " + m.getRecipient());
+                                () -> {
+                                    System.out.println("cluster-heartbeat error from " + heartbeat.getSender() + " to " + heartbeat.getRecipient());
                                     handleClusterOffline(currentnode);
                                 }
                         );
@@ -132,7 +133,7 @@ public class Node extends DrasylNode
              messageConfirmer.sendMessage(
                      message,
                      (Message m) -> System.out.println("newmaster onSuccess"),
-                     (Message m) -> System.out.println("newmaster onError")
+                     () -> System.out.println("newmaster onError")
              );
          }
     }
@@ -146,8 +147,10 @@ public class Node extends DrasylNode
         {
             if(isMaster)
             {
-                zwischenspeicher.put(clientRequest.getToken(), clientRequest);
-                antwortspeicher.put(clientRequest.getToken(), new ArrayList<>());
+                ConsensData consensData = new ConsensData();
+                consensData.setClientRequest(clientRequest);
+                consensDataCollection.put(clientRequest.getToken(), consensData);
+
                 for(int i = 0; i < localCluster.size(); i++)
                 {
                     String adresse = (String) localCluster.keySet().toArray()[i];
@@ -157,6 +160,32 @@ public class Node extends DrasylNode
                         send(adresse, Tools.getMessageAsJSONString(clientRequest));
                     }
                 }
+
+                Timer clientRequestTimer = new Timer();
+
+                clientRequestTimer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                         //Wenn das hier läuft, sind alle Antworten eingetroffen oder endgültig getimeoutet
+                        // -> Hier entscheiden
+                        if(consensDataCollection.containsKey(clientRequest.getToken()))
+                        {
+                            ClientResponse consensResponse = consensData.findConsens();
+
+                            if(consensResponse != null) {
+                                returnRequest(consensResponse);
+                            } else {
+                                ClientResponse failedConsensResponse = new ClientResponse();
+                                failedConsensResponse.setRecipient(consensData.getClientRequest().getSender());
+                                failedConsensResponse.setMessageType("clientresponse");
+                                failedConsensResponse.setResponse("Failed to reach Consensus!");
+                            }
+                        }
+
+                        consensDataCollection.remove(clientRequest.getToken());
+                    }
+                }, 10000); // 10s delay
+
                 switch (clientRequest.getRequestType()){
                     case "create":
                     {
@@ -189,7 +218,8 @@ public class Node extends DrasylNode
                         {
                             clientResponse.setResponse("Keine Daten für Key: " + clientRequest.getAffectedKey() + " gefunden.");
                         }
-                        antwortspeicher.get(clientRequest.getToken()).add(clientResponse);
+
+                        consensData.getClientResponses().add(clientResponse);
 
 
                         /*ClientResponse clientResponse = new ClientResponse();
@@ -402,18 +432,20 @@ public class Node extends DrasylNode
                     break;
                 case "clientresponse":
                     ClientResponse response = (ClientResponse) message;
-                    antwortspeicher.get(response.getToken()).add(response);
-                    List<ClientResponse> antworten = antwortspeicher.get(response.getToken());
-                    //TODO: Doppelter ForLoop
-                    int firsthash = antworten.get(0).hashCode();
-                    for(int i = 1; i < antworten.size(); i++) {
-                        if (antworten.get(i).hashCode() == firsthash) {
-                            returnRequest(antworten.get(i));
+
+                    if(consensDataCollection.containsKey(response.getToken())) {
+                        ConsensData consensData = consensDataCollection.get(response.getToken());
+                        consensData.getClientResponses().add(response);
+
+                        ClientResponse consensResponse = consensData.findConsens();
+                        if(consensResponse != null)
+                        {
+                            consensDataCollection.remove(response.getToken());
+                            returnRequest(consensResponse);
                         }
                     }
-
                     break;
-                    default:
+                default:
                     //System.out.println("unknown message-type:" + messageType);
                     break;
             }

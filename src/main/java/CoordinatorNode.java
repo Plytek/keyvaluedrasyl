@@ -58,7 +58,7 @@ public class CoordinatorNode extends DrasylNode {
                                 notifyClients();
                             }
                         },
-                        (Message m) -> System.out.println("settings: onError!!!")
+                        () -> System.out.println("settings: onError!!!")
                 );
 
 
