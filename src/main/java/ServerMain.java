@@ -15,6 +15,7 @@ public class ServerMain {
         if (args[0].equals("help"))
         {
             System.out.println("Please use as follows\n[COMMAND] <number_of_nodes> <address_of_coordinator>");
+            return;
         }
         if (args.length != 2)
         {
