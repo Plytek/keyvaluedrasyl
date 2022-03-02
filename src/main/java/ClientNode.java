@@ -224,6 +224,7 @@ public class ClientNode extends DrasylNode
                             }
                         }
                     };
+                    soundThread.run();
                     System.out.println("client network online");
                     sendHeartbeat(5000);
                     break;
