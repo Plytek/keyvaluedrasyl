@@ -12,7 +12,10 @@ public class ServerMain {
     {
         nodes = new LinkedList<>();
         //Parameter structure: <Number of Nodes> <Address of Coordinator>
-
+        if (args[0].equals("help"))
+        {
+            System.out.println("Please use as follows\n[COMMAND] <number_of_nodes> <address_of_coordinator>");
+        }
         if (args.length != 2)
         {
             System.out.println("Invalid number of arguments. Please use as follows\n[COMMAND] <number_of_nodes> <address_of_coordinator>");
@@ -32,10 +35,7 @@ public class ServerMain {
             System.out.println("Please give a valid Drasyl address");
             return;
         }
-        if (args[0].equals("help"))
-        {
-            System.out.println("Please use as follows\n[COMMAND] <number_of_nodes> <address_of_coordinator>");
-        }
+
         System.out.println("Creating " + args[0] + " nodes with coordinator address " + args[1]);
         DrasylConfig config;
 
