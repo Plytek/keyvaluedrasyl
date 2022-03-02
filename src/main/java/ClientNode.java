@@ -6,6 +6,10 @@ import org.drasyl.node.DrasylException;
 import org.drasyl.node.DrasylNode;
 import org.drasyl.node.event.*;
 
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.UnsupportedAudioFileException;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 @Getter
@@ -189,6 +193,17 @@ public class ClientNode extends DrasylNode
                     mainnodes = response.getNodes();
                     networkonline = true;
                     responsevalue = "NETWORK ONLINE!";
+                    try {
+                        Soundplayer.playClip(new File("src/main/resources/oxp1.wav"));
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    } catch (UnsupportedAudioFileException ex) {
+                        ex.printStackTrace();
+                    } catch (LineUnavailableException ex) {
+                        ex.printStackTrace();
+                    } catch (InterruptedException ex) {
+                        ex.printStackTrace();
+                    }
                     System.out.println("Event received: " + event);
                     sendHeartbeat(5000);
                     break;
