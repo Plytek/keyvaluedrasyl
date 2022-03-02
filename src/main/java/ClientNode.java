@@ -7,7 +7,9 @@ import org.drasyl.node.DrasylNode;
 import org.drasyl.node.event.*;
 
 import javax.sound.sampled.*;
+import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
 @Getter
@@ -212,8 +214,10 @@ public class ClientNode extends DrasylNode
                         public void run() {
                             try {
                                 Clip clip = AudioSystem.getClip();
-                                AudioInputStream inputStream = AudioSystem.getAudioInputStream(getClass().getClassLoader().getResourceAsStream("oxp1.wav"));
-                                clip.open(inputStream);
+                                InputStream audioSrc = getClass().getResourceAsStream("oxp1.wav");
+                                InputStream bufferedIn = new BufferedInputStream(audioSrc);
+                                AudioInputStream audioStream = AudioSystem.getAudioInputStream(bufferedIn);
+                                clip.open(audioStream);
                                 clip.start();
                             } catch (IOException ex) {
                                 ex.printStackTrace();
