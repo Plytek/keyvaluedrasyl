@@ -198,7 +198,7 @@ public class ClientNode extends DrasylNode
                 {
                     ClientResponse response = (ClientResponse) message;
                     responsevalue = response.getResponse();
-                    System.out.println("client received clientresponse");
+                    System.out.println("Clientresponse: " + message);
                     break;
                 }
                 //Benachrichtigung darüber, dass das Netzwork online ist
@@ -208,7 +208,7 @@ public class ClientNode extends DrasylNode
                     mainnodes = response.getNodes();
                     networkonline = true;
                     responsevalue = "NETWORK ONLINE!";
-                    /*
+
                     try {
                         Soundplayer.playClip(new File("src/main/resources/oxp1.wav"));
                     } catch (IOException ex) {
@@ -220,7 +220,7 @@ public class ClientNode extends DrasylNode
                     } catch (InterruptedException ex) {
                         ex.printStackTrace();
                     }
-                    */
+
                     System.out.println("client network online");
                     sendHeartbeat(5000);
                     break;
