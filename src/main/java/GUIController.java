@@ -28,7 +28,7 @@ public class GUIController
         jFrame.pack();
         jFrame.setVisible(true);
         try {
-            jFrame.setIconImage(ImageIO.read(new File("logo.png")));
+            jFrame.setIconImage(ImageIO.read(new File(getClass().getClassLoader().getResource("/resources/logo.png").getFile())));
         }
         catch (IOException exc) {
             exc.printStackTrace();
