@@ -87,7 +87,7 @@
           <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="Connect to Coordinator"/>
+          <text value="Mit Coordinator verbinden"/>
         </properties>
       </component>
       <component id="be739" class="javax.swing.JTextArea" binding="outputFeld">
@@ -103,7 +103,7 @@
           <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="Connect to Local Master"/>
+          <text value="Mit lokalem Master verbinden"/>
         </properties>
       </component>
       <component id="bcb31" class="javax.swing.JButton" binding="connectToRemoteMasterButton" default-binding="true">
@@ -111,7 +111,7 @@
           <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="Connect to Remote Master"/>
+          <text value="Mit entferntem Master verbinden"/>
         </properties>
       </component>
     </children>
