@@ -117,7 +117,11 @@ public class ClientNode extends DrasylNode
      * Sollte diese nicht eintreffen wird der Mainnode aus der Liste derer gelöscht, an die Anfragen verteilt werden.
      * @param intervall Heartbeat-Intervall in Millisekunden
      */
-    public void sendHeartbeat(int intervall) {
+    public synchronized void sendHeartbeat(int intervall) {
+        if(timer != null) {
+            timer.cancel();
+            timer = null;
+        }
         timer = new Timer();
             timer.scheduleAtFixedRate(new TimerTask() {
                 @Override
@@ -133,7 +137,9 @@ public class ClientNode extends DrasylNode
                         messageConfirmer.sendMessage(
                             heartbeat,
                             () -> {},
-                            () -> mainnodes.remove(node)
+                            () -> removeMaster(node),
+              2,
+             2000
                         );
                     }
                     }
@@ -148,7 +154,6 @@ public class ClientNode extends DrasylNode
      */
     public void connectToCoordinator()
     {
-        sendHeartbeat(5000);
         Message message = new Message();
         message.setMessageType("registerclient");
         message.setRecipient(coordinator);
@@ -159,12 +164,25 @@ public class ClientNode extends DrasylNode
     }
 
     /**
-     * Manuelles hinzufügen eines Masters
-     * @param addresse Drasyladdresse des Masternodes als String
+     * Entfernen eines Masters
+     * @param address Drasyladdresse des Masternodes als String
      */
-    public void addMaster(String addresse)
-    {
-        mainnodes.add(addresse);
+    public synchronized void removeMaster(String address) {
+        if(mainnodes.contains(address)) {
+            mainnodes.remove(address);
+            System.out.println("node removed in client-mainnodes:" + mainnodes);
+        }
+    }
+
+    /**
+     * Hinzufügen eines Masters
+     * @param address Drasyladdresse des Masternodes als String
+     */
+    public synchronized void addMaster(String address) {
+        if(!mainnodes.contains(address)) {
+            mainnodes.add(address);
+            System.out.println("node added in client-mainnodes:" + mainnodes);
+        }
     }
 
     @Override
@@ -215,10 +233,7 @@ public class ClientNode extends DrasylNode
                 case "noderesponse": {
                     NodeResponse response = (NodeResponse) message;
                     for(String address : response.getNodes()) {
-                        if (!mainnodes.contains(address)) {
-                            mainnodes.add(address);
-                            System.out.println(mainnodes);
-                        }
+                        addMaster(address);
                     }
                     break;
                 }
@@ -236,6 +251,7 @@ public class ClientNode extends DrasylNode
         else if(event instanceof NodeDownEvent e)
         {
             timer.cancel();
+            mainnodes.clear();
         }
     }
 }

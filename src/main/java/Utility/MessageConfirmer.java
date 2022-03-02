@@ -32,8 +32,7 @@ public class MessageConfirmer {
     // Versende eine Nachricht mit dem SendeProtokoll
     // onSuccess wird aufgerufen, sobald die Zustellung bestätigt wurde
     // onError wird aufgerufen, sobald die Zustellung die maximale Anzahl an Timeouts erreicht hat
-    public synchronized void sendMessage(Message message, Runnable onSuccess, Runnable onError)
-    {
+    public synchronized void sendMessage(Message message, Runnable onSuccess, Runnable onError) {
         long currentTime = System.currentTimeMillis();
         message.setSender(node.identity().getAddress().toString());
         message.setTime(currentTime);
@@ -41,6 +40,30 @@ public class MessageConfirmer {
         message.generateToken();
 
         MessageConfirmData data = new MessageConfirmData(message, onSuccess, onError);
+        messages.put(message.getToken(), data);
+        node.send(message.getRecipient(), Tools.getMessageAsJSONString(message));
+
+        if(timer == null) {
+            timer = new Timer();
+            timer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    checkAllTimeouts();
+                }
+            }, 0, 1000);
+        }
+    }
+
+    // sendMessage mit Anzahl der m
+    public synchronized void sendMessage(Message message, Runnable onSuccess, Runnable onError,
+                                         int timeoutMaxCount, int timeoutMilliseconds) {
+        long currentTime = System.currentTimeMillis();
+        message.setSender(node.identity().getAddress().toString());
+        message.setTime(currentTime);
+        message.setConfirmRequested(true);
+        message.generateToken();
+
+        MessageConfirmData data = new MessageConfirmData(message, onSuccess, onError, timeoutMaxCount, timeoutMilliseconds);
         messages.put(message.getToken(), data);
         node.send(message.getRecipient(), Tools.getMessageAsJSONString(message));
 
@@ -102,8 +125,8 @@ public class MessageConfirmer {
         long currentTime = System.currentTimeMillis();
         MessageConfirmData data = messages.get(token);
 
-        // Timeout tritt nach 3 Sekunden ein
-        if(currentTime - data.message.getTime() > 3000)
+        // Timeout tritt nach "timeoutMilliseconds" ein
+        if(currentTime - data.message.getTime() > data.timeoutMilliseconds)
         {
             // In counter sind die bisherigen Timeouts gespeichert
             // counter erhöhen und timestamp aktualisieren
@@ -112,8 +135,8 @@ public class MessageConfirmer {
             int timeouts = data.message.getCounter();
             System.out.println("Timeout Nummer " + timeouts + " für token = " + token);
 
-            if(timeouts >= 3) {
-                // höchstens 3 Timeouts
+            if(timeouts >= data.timeoutMaxCount) {
+                // höchstens "timeoutMaxCount" Timeouts
                 // Führe onError aus und entferne fehlgeschlagene Nachricht
                 data.onError.run();
                 messages.remove(token);

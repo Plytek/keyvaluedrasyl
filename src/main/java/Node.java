@@ -19,6 +19,8 @@ public class Node extends DrasylNode
     private String coordinator;
     private NodeRange range;
     private Map<String, Boolean> localCluster; // bool wer master ist
+    private Map<String, Boolean> clusterOnline; // bool wer noch online ist
+
     private int welchercluster;
     private int hashrange;
     private boolean isOnline;
@@ -40,20 +42,27 @@ public class Node extends DrasylNode
         messageConfirmer = new MessageConfirmer(this);
     }
 
-     public String getAddress() {
+    public String getAddress() {
         return this.identity().getAddress().toString();
     }
 
-    public void handleClusterOffline(String address) {
+
+    public void handleClusterHeartbeatSuccess(String address){
+        clusterOnline.put(address, true);
+    }
+    public void handleClusterHeartbeatError(String address) {
+        System.out.println("cluster-heartbeat error from " + getAddress() + " to " + address);
+        clusterOnline.put(address, false);
         if(localCluster.get(address))
         {
             // offline node ist master
+            // bestimme nächsten Master als
             String nextMaster = this.getAddress();
 
             for(int i = 0; i < localCluster.size(); i++) {
                 String clusterAddress = (String) localCluster.keySet().toArray()[i];
 
-                if (!clusterAddress.equals(address) && !clusterAddress.equals(this.getAddress())) {
+                if (!clusterAddress.equals(address) && !clusterAddress.equals(this.getAddress()) && clusterOnline.get(clusterAddress)) {
                     if (clusterAddress.hashCode() > nextMaster.hashCode()) {
                         nextMaster = clusterAddress;
                     }
@@ -79,6 +88,9 @@ public class Node extends DrasylNode
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
+                // Falls nicht online, keine heartbeats mehr senden
+                if(!isOnline) return;
+
                 for(int i = 0; i < localCluster.size(); i++)
                 {
                     Heartbeat heartbeat = new Heartbeat();
@@ -95,11 +107,8 @@ public class Node extends DrasylNode
                         heartbeat.setBemerkung("cluster hearbeat");
 
                         messageConfirmer.sendMessage(heartbeat,
-                            () -> {},
-                            () -> {
-                                System.out.println("cluster-heartbeat error from " + heartbeat.getSender() + " to " + heartbeat.getRecipient());
-                                handleClusterOffline(currentnode);
-                            }
+                            () -> handleClusterHeartbeatSuccess(currentnode),
+                            () -> handleClusterHeartbeatError(currentnode)
                         );
                     }
                 }
@@ -462,13 +471,15 @@ public class Node extends DrasylNode
 
                         isMaster = settings.isMaster();
                         List<String> cluster = settings.getLocalcluster();
-                        if(localCluster == null) localCluster = new HashMap<>();
+                        localCluster = new HashMap<>();
+                        clusterOnline = new HashMap<>();
                         for(int i = 0; i < cluster.size(); i++)
                         {
                             boolean master;
                             if(i == 0) master = true;
                             else master = false;
                             localCluster.put(cluster.get(i), master);
+                            clusterOnline.put(cluster.get(i), true);
                         }
                         previousMaster = settings.getPreviousmaster();
                         nextMaster = settings.getNextmaster();
@@ -503,6 +514,7 @@ public class Node extends DrasylNode
                 send(coordinator, Tools.getMessageAsJSONString(message));
                 isOnline = true;
                 isMaster = false;
+                if(clusterOnline!= null) clusterOnline.put(getAddress(), true);
             }
             else if(event instanceof NodeOfflineEvent)
             {
@@ -510,8 +522,11 @@ public class Node extends DrasylNode
             }
             else if (event instanceof NodeDownEvent)
             {
+                System.out.println("NodeDownEvent");
                 isOnline = false;
                 isMaster = false;
+                localCluster.put(getAddress(), false);
+                clusterOnline.put(getAddress(), false);
             }
             else
             {
