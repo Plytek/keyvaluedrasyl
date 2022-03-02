@@ -46,10 +46,10 @@ public class Node extends DrasylNode
         return this.identity().getAddress().toString();
     }
 
-
     public void handleClusterHeartbeatSuccess(String address){
         clusterOnline.put(address, true);
     }
+
     public void handleClusterHeartbeatError(String address) {
         System.out.println("cluster-heartbeat error from " + getAddress() + " to " + address);
         clusterOnline.put(address, false);
@@ -408,7 +408,6 @@ public class Node extends DrasylNode
         send(clientResponse.getRecipient(), Tools.getMessageAsJSONString(clientResponse));
     }
 
-
     // synchronized flag -> sind hier gleichzeitig nur einmal drin!
     private synchronized void handleClientResponse(ClientResponse clientResponse) {
         if(consensDataCollection.containsKey(clientResponse.getToken())) {
@@ -424,8 +423,6 @@ public class Node extends DrasylNode
             }
         }
     }
-
-
     @Override
     public void onEvent(Event event) {
         if(event instanceof MessageEvent messageEvent)
