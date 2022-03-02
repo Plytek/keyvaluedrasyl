@@ -3,7 +3,6 @@ import Utility.Tools;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -24,6 +23,10 @@ public class CoordinatorResponseWaitMessagesWindow {
     private ShowMessageJSONDialog d;
     private Timer timer;
 
+    /**
+     * Zeigt die Messages an, auf dessen Response der CoordinatorNode wartet.
+     * @param n ein CoordinatorNode
+     */
     public CoordinatorResponseWaitMessagesWindow(CoordinatorNode n)
     {
         node = n;

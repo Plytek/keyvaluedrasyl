@@ -17,6 +17,10 @@ public class NodeOptionsWindow {
     NodeDataWindow w;
     ClusterInfoWindow cw;
 
+    /**
+     * In diesem Fentster werden genauere Infos zu Nodes angezeigt, außerdem lassen sich diese hier einzeln starten und herunterfahren.
+     * @param n ein Node
+     */
     public NodeOptionsWindow(Node n)
     {
         node = n;
@@ -53,6 +57,9 @@ public class NodeOptionsWindow {
         frame.setVisible(true);
     }
 
+    /**
+     * Ein TableModel für dieses Fenster.
+     */
     public class NodeOptionsTableModel extends AbstractTableModel
     {
         private String[][] values;

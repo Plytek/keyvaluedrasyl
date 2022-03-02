@@ -12,6 +12,10 @@ public class ClusterInfoWindow {
     private Map<String, Boolean> cluster;
     private JFrame frame;
 
+    /**
+     * Dieses Fenster zeigt das Cluster eines Nodes an.
+     * @param n ein Node
+     */
     public ClusterInfoWindow(Node n)
     {
         node = n;
@@ -26,6 +30,9 @@ public class ClusterInfoWindow {
         frame.setVisible(true);
     }
 
+    /**
+     * Ein TableModel für das Cluster.
+     */
     public class ClusterInfoTableModel extends AbstractTableModel
     {
 

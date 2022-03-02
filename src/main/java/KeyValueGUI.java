@@ -30,6 +30,9 @@ public class KeyValueGUI {
     java.util.Timer timer;
     private List<Node> nodes;
 
+    /**
+     * Dies ist eine GUI für die ClientNode. Über diese GUI können Daten erstellt, geändert, gelesen und gelöscht werden.
+     */
     public KeyValueGUI() {
         createButton.addActionListener(new ActionListener() {
             @Override
@@ -73,6 +76,7 @@ public class KeyValueGUI {
                         return;
                     }
                 }
+                JOptionPane.showMessageDialog(keyValuePanel, "Kein lokaler Node ist Master");
             }
         });
         connectToRemoteMasterButton.addActionListener(new ActionListener() {
@@ -93,6 +97,9 @@ public class KeyValueGUI {
 
     }
 
+    /**
+     * Dieser Custom Dialog lässt manuell die Addresse eines Masternodes eintragen.
+     */
     protected class MasterAddressDialog extends JDialog
     {
         private JFormattedTextField addressTextField;

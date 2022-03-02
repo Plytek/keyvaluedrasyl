@@ -1,6 +1,4 @@
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -18,6 +16,11 @@ public class CreateNodesWindow {
     private ApplicationGUI gui;
     private boolean validResult = false;
 
+    /**
+     * Über dieses Fenster lassen sich beliebig viele Nodes, ein ClientNode und ein CoordinatorNode erstellen.
+     * Wird aufgerufen, falls an den Constructor von ApplicationGUI keine Parameter übergeben wurden.
+     * @param gui Eine ApplicationGUI. In der Regel übergibt hier die ApplicationGUI sich selbst.
+     */
     public CreateNodesWindow(ApplicationGUI gui)
     {
         upButton.addActionListener(new ActionListener() {
@@ -43,6 +46,7 @@ public class CreateNodesWindow {
                 }
             }
         });
+        formattedTextField1.setText("0");
         frame = new JFrame("Nodes erstellen");
         frame.setContentPane(panel);
         frame.setSize(400, 200);
@@ -51,6 +55,10 @@ public class CreateNodesWindow {
     }
 
 
+    /**
+     * Holt sich ein Integer aus dem Textfeld, wenn möglich, und setzt einen Boolean. Falls nicht, wird eine Fehlermeldung gezeigt.
+     * @return das Integer aus dem Feld
+     */
     public int getIntegerFromField()
     {
         try

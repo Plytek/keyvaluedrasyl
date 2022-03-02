@@ -1,5 +1,4 @@
 import javax.swing.*;
-import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -13,6 +12,10 @@ public class CoordinatorRegisteredNodesWindow {
     private JFrame frame;
     private TableModel tableModel;
 
+    /**
+     * Zeigt alle registrierten Nodes eines CoordinatorNodes an.
+     * @param list Liste an Node-Addressen. Es werden Strings erwartet, aber jeder andere Datentyp ist ebenfalls zulässig.
+     */
     public CoordinatorRegisteredNodesWindow(List<Object> list)
     {
         nodes = list;
