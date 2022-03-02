@@ -3,7 +3,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.CompletableFuture;
 
-class KeyvalueStoreApplicationTest
+class GUIMainTest
 {
     @Test
     void completionStageTest()

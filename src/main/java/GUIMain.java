@@ -1,13 +1,6 @@
-import org.drasyl.node.DrasylConfig;
 import org.drasyl.node.DrasylException;
 
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.CompletionStage;
-
-public class KeyvalueStoreApplication {
+public class GUIMain {
     static String coordinatorAddress = "ffc753dc5c344fc6d3fc2f0cab66337e9c05884362fa695363f1507c07870cc6";
 
     public static void main(String[] args) throws DrasylException {
