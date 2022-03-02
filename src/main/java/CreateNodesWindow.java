@@ -1,6 +1,9 @@
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
 
 public class CreateNodesWindow {
     private JButton okButton;
@@ -51,6 +54,12 @@ public class CreateNodesWindow {
         frame.setContentPane(panel);
         frame.setSize(400, 200);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        try {
+            frame.setIconImage(ImageIO.read(new File("src/main/resources/logo.png")));
+        }
+        catch (IOException exc) {
+            exc.printStackTrace();
+        }
         frame.setVisible(true);
     }
 

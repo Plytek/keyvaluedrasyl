@@ -1,7 +1,6 @@
 import Utility.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.drasyl.identity.DrasylAddress;
 import org.drasyl.node.DrasylConfig;
 import org.drasyl.node.DrasylException;
 import org.drasyl.node.DrasylNode;
