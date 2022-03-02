@@ -130,7 +130,7 @@ public class CoordinatorNode extends DrasylNode {
             settings.setHigh(partitionsize*cluster-1);
             settings.setClusterid(cluster);
             settings.setIdentity(address);
-            settings.setHashrange(range);
+            settings.setHashrange((partitionsize*(maxnodes/clustersize))-1);
             settings.setMessageType("settings");
             settings.generateToken();
             settings.setRecipient(address);
@@ -164,6 +164,7 @@ public class CoordinatorNode extends DrasylNode {
             setting.setLocalcluster(localcl);
             setting.setPreviousmaster(prevm);
             setting.setNextmaster(nextm);
+
 
         }
         return settingsList;
