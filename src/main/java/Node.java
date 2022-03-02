@@ -1,7 +1,6 @@
 import Utility.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.drasyl.identity.DrasylAddress;
 import org.drasyl.node.DrasylConfig;
 import org.drasyl.node.DrasylException;
 import org.drasyl.node.DrasylNode;
@@ -20,7 +19,6 @@ public class Node extends DrasylNode
     private String coordinator;
     private NodeRange range;
     private Map<String, Boolean> localCluster; // bool wer master ist
-
     private int welchercluster;
     private int hashrange;
     private boolean isOnline;

@@ -38,6 +38,10 @@ public class CoordinatorNode extends DrasylNode {
     }
 
 
+    /**
+     * Nimmt Messages entgegen und registriert den Sender als Node. Wenn die festgelegte maximale Anzahl
+     * an Nodes erreicht ist werden für diese Settings erstellt und entsprechend versendet
+     */
     private void registerProcess(Message message)
     {
         registerednodes.add(message.getSender());
@@ -73,6 +77,10 @@ public class CoordinatorNode extends DrasylNode {
 
     }
 
+    /**
+     * Sobald alle Nodes den Erhalt ihrer Settings bestätigt haben wird diese Methode ausgeführt, um alle Clientnodes
+     * zu informieren dass das Netzwork online ist und CRUD-Operationen zur Ausführung freigegeben sind.
+     */
     private void notifyClients()
     {
         NodeResponse message = new NodeResponse();
@@ -94,7 +102,13 @@ public class CoordinatorNode extends DrasylNode {
 
     }
 
-
+    /**
+     * Erstellt eine Liste von Settings für alle registrierten Nodes. Es wird eine Aufteilung des Hashbereichs
+     * bzw. die Partitionsgröße anhand der gesetzten Clustergröße, Anzahl von Maxknoten und der Größe des
+     * Hashbereichs berechnet. Zusätzlich wird gesetzt welcher Knoten initial ein Masterknoten ist und welchem
+     * Cluster sie angehören.
+     * @return Die Liste der Settings für alle registrierten Nodes.
+     */
     public List<Settings> createInitialSettings()
     {
         Map<Integer, List<String>> nodesbycluster = new HashMap<>();
@@ -166,15 +180,19 @@ public class CoordinatorNode extends DrasylNode {
         {
             Message message = null;
             message = Tools.getMessageFromEvent(msgevent);
+
+            //Überprüft ob einkommende Nachrichten bestätigt werden müssen oder Bestätigungen sind
             messageConfirmer.receiveMessage(message);
 
             switch(message.getMessageType())
             {
+                //Registrierungsevent Netzwerkknoten
                 case "registernode": {
                     System.out.println("Drasylevent: " + event);
                     registerProcess(message);
                     break;
                 }
+                //Registrierungsevent Clients
                 case "registerclient": {
                     clients.add(message.getSender());
                     break;
