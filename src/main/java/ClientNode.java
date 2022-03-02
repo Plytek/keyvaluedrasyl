@@ -168,6 +168,7 @@ public class ClientNode extends DrasylNode
         if(mainnodes.contains(address)) {
             mainnodes.remove(address);
             System.out.println("client removed master:" + mainnodes);
+            sendHeartbeat(5000);
         }
     }
 
