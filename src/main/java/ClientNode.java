@@ -6,9 +6,7 @@ import org.drasyl.node.DrasylException;
 import org.drasyl.node.DrasylNode;
 import org.drasyl.node.event.*;
 
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.UnsupportedAudioFileException;
-import java.io.File;
+import javax.sound.sampled.*;
 import java.io.IOException;
 import java.util.*;
 
@@ -213,14 +211,15 @@ public class ClientNode extends DrasylNode
                         @Override
                         public void run() {
                             try {
-                                Soundplayer.playClip(new File("src/main/resources/oxp1.wav"));
+                                Clip clip = AudioSystem.getClip();
+                                AudioInputStream inputStream = AudioSystem.getAudioInputStream(getClass().getClassLoader().getResourceAsStream("oxp1.wav"));
+                                clip.open(inputStream);
+                                clip.start();
                             } catch (IOException ex) {
                                 ex.printStackTrace();
                             } catch (UnsupportedAudioFileException ex) {
                                 ex.printStackTrace();
                             } catch (LineUnavailableException ex) {
-                                ex.printStackTrace();
-                            } catch (InterruptedException ex) {
                                 ex.printStackTrace();
                             }
                         }

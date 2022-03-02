@@ -171,7 +171,7 @@ public class ApplicationGUI {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(800, 600);
         try {
-            frame.setIconImage(ImageIO.read(new File(getClass().getClassLoader().getResource("logo.png").getFile())));
+            frame.setIconImage(ImageIO.read(getClass().getClassLoader().getResourceAsStream("logo.png")));
         }
         catch (IOException exc) {
             exc.printStackTrace();
