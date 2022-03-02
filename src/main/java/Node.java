@@ -447,8 +447,8 @@ public class Node extends DrasylNode
 
                         isMaster = settings.isMaster();
                         List<String> cluster = settings.getLocalcluster();
-                        if(localCluster == null) localCluster = new HashMap<>();
-                        if(clusterOnline == null) clusterOnline = new HashMap<>();
+                        localCluster = new HashMap<>();
+                        clusterOnline = new HashMap<>();
                         for(int i = 0; i < cluster.size(); i++)
                         {
                             boolean master;

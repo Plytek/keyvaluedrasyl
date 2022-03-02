@@ -251,6 +251,7 @@ public class ClientNode extends DrasylNode
         else if(event instanceof NodeDownEvent e)
         {
             timer.cancel();
+            mainnodes.clear();
         }
     }
 }
