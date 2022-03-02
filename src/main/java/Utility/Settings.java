@@ -24,6 +24,15 @@ public class Settings extends Message
     public Settings() {
     }
 
+    /**
+     * Diese Klasse beinhaltet die Settings für die Nodes.
+     * @param low untere Grenze des Hash Ranges, für den eine Node zuständig ist
+     * @param high obere Grenze des Hash-Ranges, für den eine Node zuständig ist
+     * @param isMaster ob ein Node der MasterNode ist
+     * @param localcluster eine Liste von Node-Addressen, die im selben Cluster wie der Node sind
+     * @param previousmaster der MasterNode für Hashes kleiner als die Untergrenze dieses Nodes
+     * @param nextmaster der MasterNode für Hashes größer als die Obergrenze dieses Nodes
+     */
     public Settings(int low, int high, boolean isMaster, List<String> localcluster, String previousmaster, String nextmaster) {
         messageType = "settings";
         this.low = low;

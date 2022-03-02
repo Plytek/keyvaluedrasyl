@@ -12,6 +12,7 @@ import java.util.zip.Checksum;
 
 public class Tools {
     private static ObjectMapper MAPPER = new ObjectMapper();
+    //Diese statische Map enthält die Message-Klassen, die für jeden Typ vorgesehen sind.
     private static Map<String, Class> messageTypeClasses = Map.of("clientrequest", ClientRequest.class, "heartbeat", Heartbeat.class, "clientresponse", ClientResponse.class, "settings", Settings.class, "registernode", Message.class, "confirm", Message.class,
              "registerclient", Message.class, "networkonline", NodeResponse.class, "newmaster", Message.class, "noderesponse", NodeResponse.class);
 

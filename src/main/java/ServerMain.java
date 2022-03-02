@@ -15,18 +15,19 @@ public class ServerMain {
     public static void main(String args[])
     {
         nodes = new LinkedList<>();
-        if (args[0].equals("help"))
-        {
-            System.out.println("Please use as follows\n[COMMAND] <number_of_nodes> <address_of_coordinator>");
-            return;
-        }
         if (args.length != 2)
         {
             System.out.println("Invalid number of arguments. Please use as follows\n[COMMAND] <number_of_nodes> <address_of_coordinator>");
             return;
         }
+        if (args[0].equals("help"))
+        {
+            System.out.println("Please use as follows\n[COMMAND] <number_of_nodes> <address_of_coordinator>");
+            return;
+        }
         int anzahlNodes;
-        try {
+        try
+        {
             anzahlNodes = Integer.parseInt(args[0]);
         }
         catch (NumberFormatException e)
@@ -34,7 +35,7 @@ public class ServerMain {
             System.out.println("Please give a valid Integer as number of nodes.");
             return;
         }
-        if (!args[1].matches("[0-9A-F]+"))
+        if (!args[1].matches("[0-9a-f]{64}"))
         {
             System.out.println("Please give a valid Drasyl address");
             return;
