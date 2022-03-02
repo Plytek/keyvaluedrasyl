@@ -1,17 +1,20 @@
 import org.drasyl.node.DrasylConfig;
 
 import java.nio.file.Path;
-import java.text.ParseException;
 import java.util.LinkedList;
 import java.util.List;
 
 public class ServerMain {
     static List<Node> nodes;
 
+    /**
+     * Main-Methode ohne GUI für Betrieb auf dem Server.
+     * Parameter-Struktur: <Number of Nodes> <Address of Coordinator>
+     * @param args Argumente aus dem CLI
+     */
     public static void main(String args[])
     {
         nodes = new LinkedList<>();
-        //Parameter structure: <Number of Nodes> <Address of Coordinator>
         if (args[0].equals("help"))
         {
             System.out.println("Please use as follows\n[COMMAND] <number_of_nodes> <address_of_coordinator>");
