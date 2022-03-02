@@ -10,6 +10,11 @@ public class NodeRange
     private int low;
     private int high;
 
+    /**
+     * Der Hash-Zuständigkeitsbereich eines Nodes
+     * @param low Untergrenze
+     * @param high Obergrenze
+     */
     public NodeRange(int low, int high) {
         this.low = low;
         this.high = high;
