@@ -3,7 +3,6 @@ import javax.swing.table.TableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class CoordinatorMainNodesWindow {
@@ -14,6 +13,10 @@ public class CoordinatorMainNodesWindow {
     TableModel tableModel;
     JFrame frame;
 
+    /**
+     * Dieses Fenster zeigt die registierten Main Nodes eines CoordinatorNodes an.
+     * @param list Liste an Node-Addressen
+     */
     public CoordinatorMainNodesWindow(Set<String> list)
     {
 

@@ -1,9 +1,7 @@
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -24,6 +22,10 @@ public class CoordinatorNodeWindow {
     private CoordinatorMainNodesWindow mainnw;
     private CoordinatorResponseWaitMessagesWindow rwmw;
 
+    /**
+     * Dieses Fenster zeigt Informationen des CoordinatorNodes und bietet einige Optionen an.
+     * @param c ein CoordinatorNode
+     */
     public CoordinatorNodeWindow(CoordinatorNode c)
     {
         node = c;
@@ -76,6 +78,9 @@ public class CoordinatorNodeWindow {
 
     }
 
+    /**
+     * TableModel für das CoordinatorNode Fenster
+     */
     public class CoordinatorNodeInfoTableModel extends AbstractTableModel
     {
         String[][] values;

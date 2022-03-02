@@ -13,6 +13,10 @@ public class EditNodeDataWindow {
     private Map<Integer, Map<String, String>> data;
     private JFrame frame;
 
+    /**
+     * In diesem Fenster lässt sich jeweils ein Datenpunkt eines Nodes bearbeiten.
+     * @param n ein Node
+     */
     public EditNodeDataWindow(Node n)
     {
         node = n;
@@ -36,6 +40,13 @@ public class EditNodeDataWindow {
         frame.setVisible(true);
     }
 
+    /**
+     * In diesem Fenster lassen sich die Datenpunkte der einzelnen Nodes anzeigen, bearbeiten und löschen.
+     * Dieser Constructor nimmt in der Tabelle ausgewählte Datenpunkte entgegen, damit diese nicht immer manuell eingetragen werden müssen.
+     * @param n ein Node
+     * @param selectedKey in der Tabelle ausgewählter Key
+     * @param selectedValue in der Tabelle ausgewählter Value
+     */
     public EditNodeDataWindow(Node n, String selectedKey, String selectedValue)
     {
         this(n);

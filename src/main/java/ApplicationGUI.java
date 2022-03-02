@@ -50,6 +50,9 @@ public class ApplicationGUI {
         constructUI();
     }
 
+    /**
+     * Erstellt die UI, weist ActionListener zu etc.
+     */
     private void constructUI()
     {
         if (coordinator != null)
@@ -190,6 +193,12 @@ public class ApplicationGUI {
         CreateNodesWindow cnd = new CreateNodesWindow(this);
     }
 
+    /**
+     * Der Create Nodes Dialog gibt seine Ergebnisse über diese Methode zurück. Nach Erstellen der UI nicht zu verwenden.
+     * @param n Wie viele Nodes
+     * @param coord Soll ein CoordinatorNode erstellt werden?
+     * @param client Soll ein ClientNode erstellt werden?
+     */
     public void recieveCreateDialogResults(int n, boolean coord, boolean client)
     {
         nodes = new ArrayList<>();
@@ -217,16 +226,27 @@ public class ApplicationGUI {
         constructUI();
     }
 
+    /**
+     * Zeigt das Infofenster für Nodes
+     * @param nodeNr Stelle des Nodes in der Tabelle
+     */
     private void showMoreWindow(int nodeNr)
     {
         optionsWindows.add(new NodeOptionsWindow(nodes.get(nodeNr)));
     }
 
+    /**
+     * Zeigt das Datenfenster für Nodes
+     * @param nodeNr Stelle des Nodes in der Tabelle
+     */
     private void showDataWindow(int nodeNr)
     {
         dataWindows.add(new NodeDataWindow(nodes.get(nodeNr)));
     }
 
+    /**
+     * Erstellt einen CoordinatorNode und meldet diesen in der UI an.
+     */
     private void createCoordinator()
     {
         try {
@@ -241,6 +261,9 @@ public class ApplicationGUI {
 
     }
 
+    /**
+     * Erstellt einen ClientNode und meldet diesen in der UI an.
+     */
     private void createClient()
     {
         try {
@@ -259,6 +282,9 @@ public class ApplicationGUI {
         }
     }
 
+    /**
+     * Aktualisiert die Addresse des CoordinatorNodes in Nodes und ClientNode
+     */
     private void setCoordinatorAddressInNodes()
     {
         for (Node n : nodes)
@@ -272,6 +298,9 @@ public class ApplicationGUI {
 
     }
 
+    /**
+     * Ein TableModel um die Nodes tabellarisch aufzulisten.
+     */
     protected class NodesTableModel extends AbstractTableModel {
         private final String[] headers = {
                 "Cluster",
@@ -329,6 +358,9 @@ public class ApplicationGUI {
 
     }
 
+    /**
+     * Dieser Dialog erlaubt das Ändern der CoordinatorNode-Addresse.
+     */
     protected class CoordinatorAddressDialog extends JDialog
     {
         private JFormattedTextField addressTextField;

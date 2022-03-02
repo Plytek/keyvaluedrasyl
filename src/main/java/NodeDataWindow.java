@@ -22,6 +22,10 @@ public class NodeDataWindow {
     EditNodeDataWindow ew;
     private Timer timer;
 
+    /**
+     * Über dieses Fenster lassen sich die gespeicherten Datenpunkte der einzelnen Nodes anzeigen, bearbeiten und löschen.
+     * @param n ein Node
+     */
     public NodeDataWindow(Node n)
     {
         node = n;
@@ -74,11 +78,17 @@ public class NodeDataWindow {
         }, 0, 500);
     }
 
+    /**
+     * Die Daten des Nodes werden neu geladen.
+     */
     private void refreshData()
     {
         nodeData = node.getDatastorage();
     }
 
+    /**
+     * Ein TableModel für die Node-Daten.
+     */
     public class NodesDataTableModel extends AbstractTableModel
     {
 
