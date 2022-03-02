@@ -1,24 +1,26 @@
 package Utility;
 
-import lombok.Getter;
 import org.drasyl.node.DrasylNode;
 
 import java.util.*;
-import java.util.function.Consumer;
 
-
-// Sorgt für die Zustellung von Messages mit Bestätigungen(confirm) für eine DrasylNode
-// Falls keine Bestätigung kommt, wird nach ein paar Sekunden ein Timeout ausgelöst
-// Nach jedem Timeout wird die Nachricht erneut gesendet
-// Nach ein paar Timeouts wird aufgehört
+// Umsetzung eines Sendeprotokolls + Empfangsprotokolls mit Bestätigungsnachrichten
+// Sendeprotokoll:
+// Versuche eine Nachricht zuzustellen und warte auf eine Bestätigung
+// Falls Bestätigung eintrifft, so rufe eine onSuccess Funktion auf
+// Falls Timeout für Bestätigung, so sende Nachricht erneut, bis zu einer maximalen Anzahl von Timeouts
+// Falls Maximale Anzahl an Timeouts, so rufe eine onError Funktion auf
+// Empfangsprotokoll:
+// Falls eine Bestätigung angefordert wird, so sende diese Bestätigung
+// Falls eine Bestätigung für eine Nachricht ankommt, so gebe Senderprotokoll Bescheid
 public class MessageConfirmer {
     // Der Knoten mit dem gesendet/empfangen wird
     private DrasylNode node;
 
-    // Map von Token zu Message-Daten, bei denen noch auf ein Confirm gewartet wird
+    // Die Daten für eine Nachricht im Sendeprotokoll, identifiziert mit Token
     private Map<String, MessageConfirmData> messages;
 
-    // Timer für die regelmäßige Prüfung auf Timeouts
+    // Timer für die Prüfung von Timeouts im Sendeprotokoll
     private Timer timer;
 
     // Starte den MessageConfirmer für die eigene Adresse
@@ -27,12 +29,9 @@ public class MessageConfirmer {
         this.messages = new HashMap<>();
     }
 
-    // Sende eine Nachricht die von dem Empfänger bestätigt werden muss
-    // Falls keine Bestätigung kommt, gibt es nach ein paar Sekunden einen Timeout und die Nachricht wird erneut gesendet
-    // Nach ein paar Timeouts wird aufgegeben
-    // Die automatische Prüfung erfolgt in "startMessageConfirmer" bzw. "checkTimeoutMessage"
-    // onSuccess wird bei empfangener Bestätigung ausgeführt
-    // onError wird bei endgültigem Timeout ausgeführt
+    // Versende eine Nachricht mit dem SendeProtokoll
+    // onSuccess wird aufgerufen, sobald die Zustellung bestätigt wurde
+    // onError wird aufgerufen, sobald die Zustellung die maximale Anzahl an Timeouts erreicht hat
     public synchronized void sendMessage(Message message, Runnable onSuccess, Runnable onError)
     {
         long currentTime = System.currentTimeMillis();
@@ -56,26 +55,24 @@ public class MessageConfirmer {
         }
     }
 
-    // Muss vom Knoten bei jeder ankommenden Message aufgerufen werden !
-    // Hiermit kann geprüft werden, ob Bestätigungen angekommen sind
+    // Führe das Empfangsprotokoll für eine eingehende Nachricht aus
+    // Muss vom Benutzer dieser Klasse in DrasylNode.onEvent manuell aufgerufen werden!
     public synchronized void receiveMessage(Message message){
         String token = message.getToken();
 
+        // Falls Bestätigung angefordert wird, so sende diese
         if (message.isConfirmRequested()) {
-            // Sende Confirmation, falls angefordert
             sendConfirmation(token, message.getSender());
         }
 
+        // Falls Bestätigung eingetroffen, so führe onSuccess aus und entferne bestätigte Nachricht
         if (messages.containsKey(token)) {
-            // Entferne Nachricht aus Behälter, falls confirm eingetroffen
-            // Führe auch onSuccess aus
             messages.get(token).onSuccess.run();
             messages.remove(token);
         }
     }
 
-    // Sende eine Bestätigung auf eine Nachricht
-    // Wird von der Klasse automatisch aufgerufen
+    // Sende eine Bestätigung
     private void sendConfirmation(String token, String receiver) {
         String sender =  node.identity().getAddress().toString();
 
@@ -87,38 +84,37 @@ public class MessageConfirmer {
         node.send(receiver, Tools.getMessageAsJSONString(message));
     }
 
-    // Prüfe timeouts für alle Nachrichten
+    // Prüfe Timeouts für alle Nachrichten
     private synchronized void checkAllTimeouts() {
+        // Kopieren hier Tokens
+        // Sonst gibt es Probleme bei Mutation der messages im for-loop
         Set<String> tokens = new HashSet<>(messages.keySet());
 
         for(String token : tokens)
         {
-            checkTimeoutMessage(token);
+            checkTimeout(token);
         }
     }
 
-    // Prüfe ob für eine Nachricht aus confirmMessages ein Timeout besteht
-    // Timeout nach ein paar Sekunden
-    // Nach jedem Timeout wird Nachricht erneut gesendet bis zu 3mal
-    // Wenn nach ein paar Timeouts nicht erfolgreich, wird aufgehört
-    private void checkTimeoutMessage(String token)
+    // Prüfe einen Timeout für eine Nachricht
+    private void checkTimeout(String token)
     {
         long currentTime = System.currentTimeMillis();
         MessageConfirmData data = messages.get(token);
 
-        // nur handeln falls timeout nach 3 Sekunden
+        // Timeout tritt nach 3 Sekunden ein
         if(currentTime - data.message.getTime() > 3000)
         {
-            // timeout!
-            // counter zählt wie oft bisher timeout aufgetaucht -> jetzt einmal mehr als counter
-            // timer updaten für ggf nächsten timeout
+            // In counter sind die bisherigen Timeouts gespeichert
+            // counter erhöhen und timestamp aktualisieren
             data.message.tickCounter();
             data.message.updateTimestamp();
             int timeouts = data.message.getCounter();
             System.out.println("Timeout Nummer " + timeouts + " für token = " + token);
 
             if(timeouts >= 3) {
-                // endgültig fehlgeschlagen nach 3 timeouts
+                // höchstens 3 Timeouts
+                // Führe onError aus und entferne fehlgeschlagene Nachricht
                 data.onError.run();
                 messages.remove(token);
             } else {
@@ -127,8 +123,6 @@ public class MessageConfirmer {
             }
         }
     }
-
-
 
 
 }
