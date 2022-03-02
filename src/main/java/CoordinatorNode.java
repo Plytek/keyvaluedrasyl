@@ -42,7 +42,7 @@ public class CoordinatorNode extends DrasylNode {
      * Nimmt Messages entgegen und registriert den Sender als Node. Wenn die festgelegte maximale Anzahl
      * an Nodes erreicht ist werden für diese Settings erstellt und entsprechend versendet
      */
-    private void registerProcess(Message message)
+    private synchronized void registerProcess(Message message)
     {
         registerednodes.add(message.getSender());
         System.out.println("Node " + number + " hinzugefügt" + " (" + message.getSender() + ")");

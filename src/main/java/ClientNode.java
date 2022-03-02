@@ -118,11 +118,9 @@ public class ClientNode extends DrasylNode
      * @param intervall Heartbeat-Intervall in Millisekunden
      */
     public synchronized void sendHeartbeat(int intervall) {
-        if(timer != null) {
-            timer.cancel();
-            timer = null;
-        }
-        timer = new Timer();
+        if(timer == null) {
+
+            timer = new Timer();
             timer.scheduleAtFixedRate(new TimerTask() {
                 @Override
                 public void run() {
@@ -145,8 +143,7 @@ public class ClientNode extends DrasylNode
                     }
                 }
             },0 , intervall);
-
-
+        }
     }
 
     /**
@@ -170,7 +167,7 @@ public class ClientNode extends DrasylNode
     public synchronized void removeMaster(String address) {
         if(mainnodes.contains(address)) {
             mainnodes.remove(address);
-            System.out.println("node removed in client-mainnodes:" + mainnodes);
+            System.out.println("client removed master:" + mainnodes);
         }
     }
 
@@ -181,7 +178,7 @@ public class ClientNode extends DrasylNode
     public synchronized void addMaster(String address) {
         if(!mainnodes.contains(address)) {
             mainnodes.add(address);
-            System.out.println("node added in client-mainnodes:" + mainnodes);
+            System.out.println("client added master:" + mainnodes);
         }
     }
 
@@ -201,7 +198,7 @@ public class ClientNode extends DrasylNode
                 {
                     ClientResponse response = (ClientResponse) message;
                     responsevalue = response.getResponse();
-                    System.out.println("Event received: " + event);
+                    System.out.println("client received clientresponse");
                     break;
                 }
                 //Benachrichtigung darüber, dass das Netzwork online ist
@@ -211,6 +208,7 @@ public class ClientNode extends DrasylNode
                     mainnodes = response.getNodes();
                     networkonline = true;
                     responsevalue = "NETWORK ONLINE!";
+                    /*
                     try {
                         Soundplayer.playClip(new File("src/main/resources/oxp1.wav"));
                     } catch (IOException ex) {
@@ -222,7 +220,8 @@ public class ClientNode extends DrasylNode
                     } catch (InterruptedException ex) {
                         ex.printStackTrace();
                     }
-                    System.out.println("Event received: " + event);
+                    */
+                    System.out.println("client network online");
                     sendHeartbeat(5000);
                     break;
                 }
@@ -250,7 +249,11 @@ public class ClientNode extends DrasylNode
         }
         else if(event instanceof NodeDownEvent e)
         {
-            timer.cancel();
+            if(timer != null){
+                timer.cancel();
+                timer = null;
+            }
+            mainnodes.clear();
         }
     }
 }

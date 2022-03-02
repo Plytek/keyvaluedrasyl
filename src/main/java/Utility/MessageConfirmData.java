@@ -9,14 +9,6 @@ public class MessageConfirmData {
     public int timeoutMaxCount;
     public int timeoutMilliseconds;
 
-    public MessageConfirmData(Message message, Runnable onSuccess, Runnable onError) {
-        this.message = message;
-        this.onSuccess = onSuccess;
-        this.onError = onError;
-        this.timeoutMaxCount = 3;
-        this.timeoutMilliseconds = 3000;
-    }
-
     public MessageConfirmData(Message message, Runnable onSuccess, Runnable onError, int timeoutMaxCount, int timeoutMilliseconds) {
         this.message = message;
         this.onSuccess = onSuccess;

@@ -33,25 +33,7 @@ public class MessageConfirmer {
     // onSuccess wird aufgerufen, sobald die Zustellung bestätigt wurde
     // onError wird aufgerufen, sobald die Zustellung die maximale Anzahl an Timeouts erreicht hat
     public synchronized void sendMessage(Message message, Runnable onSuccess, Runnable onError) {
-        long currentTime = System.currentTimeMillis();
-        message.setSender(node.identity().getAddress().toString());
-        message.setTime(currentTime);
-        message.setConfirmRequested(true);
-        message.generateToken();
-
-        MessageConfirmData data = new MessageConfirmData(message, onSuccess, onError);
-        messages.put(message.getToken(), data);
-        node.send(message.getRecipient(), Tools.getMessageAsJSONString(message));
-
-        if(timer == null) {
-            timer = new Timer();
-            timer.scheduleAtFixedRate(new TimerTask() {
-                @Override
-                public void run() {
-                    checkAllTimeouts();
-                }
-            }, 0, 1000);
-        }
+        sendMessage(message, onSuccess, onError, 3, 3000);
     }
 
     // sendMessage mit Anzahl der m
@@ -133,7 +115,7 @@ public class MessageConfirmer {
             data.message.tickCounter();
             data.message.updateTimestamp();
             int timeouts = data.message.getCounter();
-            System.out.println("Timeout Nummer " + timeouts + " für token = " + token);
+            System.out.println("Timeout Nummer " + timeouts + " für message = " + data.message);
 
             if(timeouts >= data.timeoutMaxCount) {
                 // höchstens "timeoutMaxCount" Timeouts
