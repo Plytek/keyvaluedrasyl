@@ -34,7 +34,7 @@ public class ServerMain {
             System.out.println("Please give a valid Integer as number of nodes.");
             return;
         }
-        if (!args[1].matches("[0-9A-F]+"))
+        if (!args[1].matches("[0-9a-f]{64}"))
         {
             System.out.println("Please give a valid Drasyl address");
             return;
