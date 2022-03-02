@@ -25,7 +25,7 @@ public class Node extends DrasylNode
     private int hashrange;
     private boolean isOnline;
 
-    private Map<Integer, Map<String,String>> datastorage = new HashMap<>();
+    private Map<Integer, Map<String,String>> datastorage;
 
     private Map<String, ConsensData> consensDataCollection = Collections.synchronizedMap(new HashMap<>());
     private MessageConfirmer messageConfirmer;
@@ -461,11 +461,26 @@ public class Node extends DrasylNode
                         nodeResponse.setNodes(Set.of(previousMaster, nextMaster));
                         send(nodeResponse.getRecipient(), Tools.getMessageAsJSONString(nodeResponse));
                     }
-                    //System.out.println("Heartbeat: " + heartbeat.getBemerkung() + " von " + message.getSender());
                     break;
                 case "settings":
                     Settings settings = (Settings) message;
 
+                        if(!settings.isInitialSettings() && datastorage != null)
+                        {
+                            if(isMaster)
+                            {
+                                NodeResponse backupdata = new NodeResponse();
+                                backupdata.setMessageType("noderesponse");
+                                backupdata.setDatastorage(datastorage);
+                                backupdata.setSender(getAddress());
+                                backupdata.setRecipient(settings.getSender());
+                                backupdata.generateToken();
+                                messageConfirmer.sendMessage(backupdata, () -> {
+                                    System.out.print("");
+                                }, () -> System.out.println("Fehler bei Dateübertragung"));
+                            }
+                            datastorage.clear();
+                        }
                         isMaster = settings.isMaster();
                         List<String> cluster = settings.getLocalcluster();
                         localCluster = new HashMap<>();
@@ -483,6 +498,7 @@ public class Node extends DrasylNode
                         welchercluster = settings.getClusterid();
                         range = new NodeRange(settings.getLow(), settings.getHigh());
                         hashrange = settings.getHashrange();
+                        if(datastorage == null) datastorage = new HashMap<>();
 
                         sendHeartbeat(5000);
                         System.out.println(localCluster.toString() + "\n" + isMaster + "\n" + previousMaster + "\n" + nextMaster + "\n" + range.toString() + "\n" + settings.getClusterid());
@@ -496,7 +512,6 @@ public class Node extends DrasylNode
                     handleClientResponse((ClientResponse) message);
                     break;
                 default:
-                    //System.out.println("unknown message-type:" + messageType);
                     break;
             }
         }

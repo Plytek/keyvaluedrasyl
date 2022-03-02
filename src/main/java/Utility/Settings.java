@@ -19,6 +19,7 @@ public class Settings extends Message
     private String nextmaster;
     private int hashrange;
     private int clusterid;
+    private boolean initialSettings;
 
 
     public Settings() {

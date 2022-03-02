@@ -244,6 +244,11 @@ public class ClientNode extends DrasylNode
                     }
                     break;
                 }
+                case "clientrequest":
+                {
+                    ClientRequest clientRequest = (ClientRequest) message;
+                    create(clientRequest.getAffectedKey(), clientRequest.getValue());
+                }
                 default:
                 {
                     break;

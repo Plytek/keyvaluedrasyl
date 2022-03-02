@@ -19,12 +19,16 @@ public class CoordinatorNode extends DrasylNode {
     Set<String> mainnodes = new HashSet<>();
     List<String> clients = new ArrayList<>();
     Map<String, Message> responseWaitMap = new ConcurrentHashMap<>();
-    private int maxnodes = 12;
+    private int maxnodes = 3;
+    private int oldmaxnodes;
     //int range = Integer.MAX_VALUE-1;
     private int range = 9998;
     private int clustersize = 3;
     private int number = 1;
+    private int dataBasesRecieved = 0;
+    private List<Map<Integer, Map<String,String>>> listOfDatabases = new ArrayList<>();
     private boolean isOnline;
+    private boolean initialSettings = true;
 
     private MessageConfirmer messageConfirmer;
 
@@ -44,7 +48,6 @@ public class CoordinatorNode extends DrasylNode {
      */
     private synchronized void registerProcess(Message message)
     {
-        registerednodes.add(message.getSender());
         System.out.println("Node " + number + " hinzugefügt" + " (" + message.getSender() + ")");
         number++;
         if(registerednodes.size() == maxnodes)
@@ -60,6 +63,7 @@ public class CoordinatorNode extends DrasylNode {
                         if(responseWaitMap.size() == 0)
                         {
                             notifyClients();
+                            initialSettings = false;
                             System.out.println("Erfolg");
                         }
                     },
@@ -135,6 +139,7 @@ public class CoordinatorNode extends DrasylNode {
             settings.generateToken();
             settings.setRecipient(address);
             settings.setSender(identity().getAddress().toString());
+            settings.setInitialSettings(initialSettings);
             settingsList.add(settings);
 
 
@@ -170,6 +175,35 @@ public class CoordinatorNode extends DrasylNode {
         return settingsList;
     }
 
+    public void redistributeData()
+    {
+        List<ClientRequest> requestList = new ArrayList<>();
+        for(Map<Integer, Map<String,String>> database : listOfDatabases)
+        {
+            for(Integer key : database.keySet())
+            {
+                Map<String, String> data = database.get(key);
+                for(Map.Entry<String, String> entry : data.entrySet())
+                {
+                    ClientRequest clientRequest = new ClientRequest();
+                    clientRequest.setMessageType("clientrequest");
+                    clientRequest.setRequestType("create");
+                    clientRequest.setAffectedKey(entry.getKey());
+                    clientRequest.setValue(entry.getValue());
+                    clientRequest.setRecipient(clients.get(0));
+                    clientRequest.setSender(identity.getAddress().toString());
+                    clientRequest.generateToken();
+                    requestList.add(clientRequest);
+                }
+            }
+        }
+        for(ClientRequest request : requestList)
+        {
+            messageConfirmer.sendMessage(request, () -> System.out.print(""), () -> System.out.println("Problemrequest. Repeat?") );
+        }
+        listOfDatabases.clear();
+    }
+
     public void clearNodes()
     {
         registerednodes.clear();
@@ -190,13 +224,28 @@ public class CoordinatorNode extends DrasylNode {
                 //Registrierungsevent Netzwerkknoten
                 case "registernode": {
                     System.out.println("Drasylevent: " + event);
-                    registerProcess(message);
+                    if(!registerednodes.contains(message.getSender()) && registerednodes.size() < maxnodes)
+                    {
+                        registerednodes.add(message.getSender());
+                        registerProcess(message);
+                    }
                     break;
                 }
                 //Registrierungsevent Clients
                 case "registerclient": {
                     clients.add(message.getSender());
                     break;
+                }
+                case "noderesponse":
+                {
+                    NodeResponse backupdata = (NodeResponse) message;
+                    dataBasesRecieved++;
+                    listOfDatabases.add(backupdata.getDatastorage());
+                    if(dataBasesRecieved == oldmaxnodes/clustersize)
+                    {
+                        dataBasesRecieved = 0;
+                        redistributeData();
+                    }
                 }
             }
             System.out.println(event);
