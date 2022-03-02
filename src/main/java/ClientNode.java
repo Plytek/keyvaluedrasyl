@@ -168,7 +168,6 @@ public class ClientNode extends DrasylNode
         if(mainnodes.contains(address)) {
             mainnodes.remove(address);
             System.out.println("client removed master:" + mainnodes);
-            sendHeartbeat(5000);
         }
     }
 
@@ -180,6 +179,7 @@ public class ClientNode extends DrasylNode
         if(!mainnodes.contains(address)) {
             mainnodes.add(address);
             System.out.println("client added master:" + mainnodes);
+            sendHeartbeat(5000);
         }
     }
 
