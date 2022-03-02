@@ -424,7 +424,7 @@ public class Node extends DrasylNode
                     break;
                 case "heartbeat":
                     Heartbeat heartbeat = (Heartbeat) message;
-                    if(heartbeat.getHeartbeat().equals("clientheartbeat"))
+                    if(heartbeat.getHeartbeat().equals("clientheartbeat") && isMaster)
                     {
                         NodeResponse nodeResponse = new NodeResponse();
                         nodeResponse.setMessageType("noderesponse");
