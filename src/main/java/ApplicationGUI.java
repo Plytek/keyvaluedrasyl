@@ -2,6 +2,7 @@ import lombok.Setter;
 import org.drasyl.node.DrasylConfig;
 import org.drasyl.node.DrasylException;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import java.awt.*;
@@ -9,6 +10,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.List;
@@ -37,6 +40,9 @@ public class ApplicationGUI {
     private ApplicationGUI myself = this;
     private GUIController clientGUI;
     private ClientNode client;
+    private Image image;
+    private ImageIcon icon;
+
 
     /**
      * Erstellt eine GUI, die mit Nodes und CoordinatorNodes arbeiten kann.
@@ -164,6 +170,12 @@ public class ApplicationGUI {
         frame.setContentPane(NodesWindow);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(800, 600);
+        try {
+            frame.setIconImage(ImageIO.read(new File("src/main/resources/logo.png")));
+        }
+        catch (IOException exc) {
+            exc.printStackTrace();
+        }
         frame.setVisible(true);
         timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {

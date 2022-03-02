@@ -1,6 +1,9 @@
 import lombok.Getter;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 @Getter
@@ -24,6 +27,12 @@ public class GUIController
         jFrame.setContentPane(keyValueGUI.getKeyValuePanel());
         jFrame.pack();
         jFrame.setVisible(true);
+        try {
+            jFrame.setIconImage(ImageIO.read(new File("src/main/resources/logo.png")));
+        }
+        catch (IOException exc) {
+            exc.printStackTrace();
+        }
 
     }
 }
