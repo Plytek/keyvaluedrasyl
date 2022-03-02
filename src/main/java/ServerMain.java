@@ -26,7 +26,8 @@ public class ServerMain {
             return;
         }
         int anzahlNodes;
-        try {
+        try
+        {
             anzahlNodes = Integer.parseInt(args[0]);
         }
         catch (NumberFormatException e)
