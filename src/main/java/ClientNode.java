@@ -42,9 +42,9 @@ public class ClientNode extends DrasylNode
             ClientRequest request = new ClientRequest("create", key, value);
             request.setRecipient(address);
             request.setSender(identity().getAddress().toString());
-            responsevalue = "Waiting for Server response...";
+            responsevalue = "Auf Antwort vom Server warten...";
             send(address, Tools.getMessageAsJSONString(request));
-        } else { responsevalue = "NETWORK OFFLINE!";
+        } else { responsevalue = "NETZWERK OFFLINE!";
         }
     }
 
@@ -60,10 +60,10 @@ public class ClientNode extends DrasylNode
             ClientRequest request = new ClientRequest("delete", key);
             request.setRecipient(address);
             request.setSender(identity().getAddress().toString());
-            responsevalue = "Waiting for Server response...";
+            responsevalue = "Auf Antwort vom Server warten...";
             send(address, Tools.getMessageAsJSONString(request));
         }
-        else { responsevalue = "NETWORK OFFLINE!";
+        else { responsevalue = "NETZWERK OFFLINE!";
     }
 
     }
@@ -81,10 +81,10 @@ public class ClientNode extends DrasylNode
             ClientRequest request = new ClientRequest("update", key, value);
             request.setRecipient(address);
             request.setSender(identity().getAddress().toString());
-            responsevalue = "Waiting for Server response...";
+            responsevalue = "Auf Antwort vom Server warten...";
             send(address, Tools.getMessageAsJSONString(request));
         }
-        else { responsevalue = "NETWORK OFFLINE!";
+        else { responsevalue = "NETZWERK OFFLINE!";
     }
 
     }
@@ -101,10 +101,10 @@ public class ClientNode extends DrasylNode
             ClientRequest request = new ClientRequest("read", key);
             request.setRecipient(address);
             request.setSender(identity().getAddress().toString());
-            responsevalue = "Waiting for Server response...";
+            responsevalue = "Auf Antwort vom Server warten...";
             send(address, Tools.getMessageAsJSONString(request));
         }
-        else { responsevalue = "NETWORK OFFLINE!";
+        else { responsevalue = "NETZWERK OFFLINE!";
     }
     }
 
@@ -188,7 +188,7 @@ public class ClientNode extends DrasylNode
                     NodeResponse response = (NodeResponse) message;
                     mainnodes = response.getNodes();
                     networkonline = true;
-                    responsevalue = "NETWORK ONLINE!";
+                    responsevalue = "NETZWERK ONLINE!";
                     System.out.println("Event received: " + event);
                     sendHeartbeat(5000);
                     break;
