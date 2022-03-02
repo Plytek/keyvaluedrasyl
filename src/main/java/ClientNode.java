@@ -90,7 +90,11 @@ public class ClientNode extends DrasylNode
     }
     }
 
-    public void sendHeartbeat(int intervall) {
+    public synchronized void sendHeartbeat(int intervall) {
+        if(timer != null) {
+            timer.cancel();
+            timer = null;
+        }
         timer = new Timer();
             timer.scheduleAtFixedRate(new TimerTask() {
                 @Override
@@ -106,7 +110,9 @@ public class ClientNode extends DrasylNode
                         messageConfirmer.sendMessage(
                             heartbeat,
                             () -> {},
-                            () -> mainnodes.remove(node)
+                            () -> removeMaster(node),
+              2,
+             2000
                         );
                     }
                     }
@@ -118,7 +124,6 @@ public class ClientNode extends DrasylNode
 
     public void connectToCoordinator()
     {
-        sendHeartbeat(5000);
         Message message = new Message();
         message.setMessageType("registerclient");
         message.setRecipient(coordinator);
@@ -128,9 +133,18 @@ public class ClientNode extends DrasylNode
         send(message.getRecipient(), Tools.getMessageAsJSONString(message));
     }
 
-    public void addMaster(String addresse)
-    {
-        mainnodes.add(addresse);
+    public synchronized void removeMaster(String address) {
+        if(mainnodes.contains(address)) {
+            mainnodes.remove(address);
+            System.out.println("node removed in client-mainnodes:" + mainnodes);
+        }
+    }
+
+    public synchronized void addMaster(String address) {
+        if(!mainnodes.contains(address)) {
+            mainnodes.add(address);
+            System.out.println("node added in client-mainnodes:" + mainnodes);
+        }
     }
 
     @Override
@@ -164,10 +178,7 @@ public class ClientNode extends DrasylNode
                 case "noderesponse": {
                     NodeResponse response = (NodeResponse) message;
                     for(String address : response.getNodes()) {
-                        if (!mainnodes.contains(address)) {
-                            mainnodes.add(address);
-                            System.out.println(mainnodes);
-                        }
+                        addMaster(address);
                     }
                     break;
                 }
