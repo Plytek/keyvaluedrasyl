@@ -1,5 +1,7 @@
 package Utility;
 
+
+// Daten für die Versendung einer Nachricht mit dem MessageConfirmer
 public class MessageConfirmData {
     public Message message;
     public Runnable onSuccess;

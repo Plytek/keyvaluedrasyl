@@ -9,12 +9,16 @@ import java.util.UUID;
 public class Message
 {
     protected String messageType;
+    // Timestamp zum Sende-Zeitpunkt
     protected long time;
+    // Token für Identifikation der Nachricht
     protected String token;
     protected String sender;
     protected String recipient;
-    protected int counter;
+    // Anzahl der Timeouts bei Zustellung mit MessageConfirmer, vor dem ersten Timeout gleich 0
+    protected int counter = 0;
     protected String bemerkung;
+    // Flag die vom MessageConfirmer gesetzt wird, falls eine Bestätigung erwartet wird
     protected boolean confirmRequested = false;
 
     public Message() {
@@ -44,6 +48,8 @@ public class Message
         time = System.currentTimeMillis();
     }
 
+    // Token ist zufälliger String
+    // Kollisionen sind praktisch ausgeschlossen
     public String generateToken()
     {
         token = UUID.randomUUID().toString();
