@@ -73,6 +73,7 @@ public class KeyValueGUI {
                         return;
                     }
                 }
+                JOptionPane.showMessageDialog(keyValuePanel, "Kein lokaler Node ist Master");
             }
         });
         connectToRemoteMasterButton.addActionListener(new ActionListener() {
