@@ -145,6 +145,7 @@ public class Node extends DrasylNode
     public void handleClientRequest(ClientRequest clientRequest)
     {
         int requesthash = clientRequest.verteilerHash();
+        boolean sonderfall = (range.getLow() == 0 || range.getHigh() == hashrange);
 
         System.out.println("Hashcode: " + requesthash);
         if(requesthash >= range.getLow() && requesthash <= range.getHigh())
@@ -262,10 +263,33 @@ public class Node extends DrasylNode
             }
 
         }
-        else if(requesthash > range.getHigh())
+        else if(requesthash > range.getHigh() && !sonderfall)
         {
             clientRequest.setBemerkung("Von " + welchercluster + " an next gesendet");
             send(nextMaster, Tools.getMessageAsJSONString(clientRequest));
+        }
+        else if(sonderfall)
+        {
+            if(range.getLow() == 0 && requesthash > hashrange-range.getHigh())
+            {
+                clientRequest.setBemerkung("Von " + welchercluster + " an next gesendet");
+                send(previousMaster, Tools.getMessageAsJSONString(clientRequest));
+            }
+            else if(range.getLow() == 0)
+            {
+                clientRequest.setBemerkung("Von " + welchercluster + " an next gesendet");
+                send(nextMaster, Tools.getMessageAsJSONString(clientRequest));
+            }
+            else if(range.getHigh() == hashrange && requesthash < range.getLow() && requesthash > (range.getHigh()-range.getLow()))
+            {
+                clientRequest.setBemerkung("Von " + welchercluster + " an next gesendet");
+                send(previousMaster, Tools.getMessageAsJSONString(clientRequest));
+            }
+            else
+            {
+                clientRequest.setBemerkung("Von " + welchercluster + " an next gesendet");
+                send(nextMaster, Tools.getMessageAsJSONString(clientRequest));
+            }
         }
         else
         {

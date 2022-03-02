@@ -42,7 +42,7 @@ public class ClientNode extends DrasylNode
     {
         if (networkonline) {
             Random rand = new Random();
-            String address = (String) mainnodes.toArray()[rand.nextInt(0, mainnodes.size()-1)];
+            String address = (String) mainnodes.toArray()[rand.nextInt(0, mainnodes.size())];
             ClientRequest request = new ClientRequest("create", key, value);
             request.setRecipient(address);
             request.setSender(identity().getAddress().toString());
@@ -60,7 +60,7 @@ public class ClientNode extends DrasylNode
     {
         if (networkonline) {
             Random rand = new Random();
-            String address = (String) mainnodes.toArray()[rand.nextInt(0, mainnodes.size()-1)];
+            String address = (String) mainnodes.toArray()[rand.nextInt(0, mainnodes.size())];
             ClientRequest request = new ClientRequest("delete", key);
             request.setRecipient(address);
             request.setSender(identity().getAddress().toString());
@@ -81,7 +81,7 @@ public class ClientNode extends DrasylNode
     {
         if (networkonline) {
             Random rand = new Random();
-            String address = (String) mainnodes.toArray()[rand.nextInt(0, mainnodes.size()-1)];
+            String address = (String) mainnodes.toArray()[rand.nextInt(0, mainnodes.size())];
             ClientRequest request = new ClientRequest("update", key, value);
             request.setRecipient(address);
             request.setSender(identity().getAddress().toString());
@@ -101,7 +101,7 @@ public class ClientNode extends DrasylNode
     {
         if (networkonline) {
             Random rand = new Random();
-            String address = (String) mainnodes.toArray()[rand.nextInt(0, mainnodes.size()-1)];
+            String address = (String) mainnodes.toArray()[rand.nextInt(0, mainnodes.size())];
             ClientRequest request = new ClientRequest("read", key);
             request.setRecipient(address);
             request.setSender(identity().getAddress().toString());
