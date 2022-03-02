@@ -93,7 +93,7 @@ public class KeyValueGUI {
             public void run() {
                 outputFeld.setText(clientNode.getResponsevalue());
             }
-        },0, 1000);
+        },0, 100);
 
 
     }
