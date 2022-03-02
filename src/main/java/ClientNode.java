@@ -208,19 +208,22 @@ public class ClientNode extends DrasylNode
                     mainnodes = response.getNodes();
                     networkonline = true;
                     responsevalue = "NETWORK ONLINE!";
-
-                    try {
-                        Soundplayer.playClip(new File("src/main/resources/oxp1.wav"));
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
-                    } catch (UnsupportedAudioFileException ex) {
-                        ex.printStackTrace();
-                    } catch (LineUnavailableException ex) {
-                        ex.printStackTrace();
-                    } catch (InterruptedException ex) {
-                        ex.printStackTrace();
-                    }
-
+                    Runnable soundThread = new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                Soundplayer.playClip(new File("src/main/resources/oxp1.wav"));
+                            } catch (IOException ex) {
+                                ex.printStackTrace();
+                            } catch (UnsupportedAudioFileException ex) {
+                                ex.printStackTrace();
+                            } catch (LineUnavailableException ex) {
+                                ex.printStackTrace();
+                            } catch (InterruptedException ex) {
+                                ex.printStackTrace();
+                            }
+                        }
+                    };
                     System.out.println("client network online");
                     sendHeartbeat(5000);
                     break;
