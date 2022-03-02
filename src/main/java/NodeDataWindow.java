@@ -51,7 +51,12 @@ public class NodeDataWindow {
         valueÄndernButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                ew = new EditNodeDataWindow(node);
+
+                if (nodesDataTable.getSelectionModel().isSelectionEmpty()) {
+                    ew = new EditNodeDataWindow(node);
+                    return;
+                }
+                ew = new EditNodeDataWindow(node, (String) nodesDataTable.getValueAt(nodesDataTable.getSelectedRow(), 1), (String) nodesDataTable.getValueAt(nodesDataTable.getSelectedRow(), 2));
             }
         });
         frame = new JFrame("Node Data");

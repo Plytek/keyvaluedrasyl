@@ -35,4 +35,11 @@ public class EditNodeDataWindow {
         frame.setSize(300, 200);
         frame.setVisible(true);
     }
+
+    public EditNodeDataWindow(Node n, String selectedKey, String selectedValue)
+    {
+        this(n);
+        formattedTextField1.setText(selectedKey);
+        formattedTextField2.setText(selectedValue);
+    }
 }
