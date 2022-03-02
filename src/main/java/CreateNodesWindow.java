@@ -55,7 +55,7 @@ public class CreateNodesWindow {
         frame.setSize(400, 200);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         try {
-            frame.setIconImage(ImageIO.read(new File("src/main/resources/logo.png")));
+            frame.setIconImage(ImageIO.read(new File("logo.png")));
         }
         catch (IOException exc) {
             exc.printStackTrace();
