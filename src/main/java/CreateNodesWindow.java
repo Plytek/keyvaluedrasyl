@@ -16,7 +16,6 @@ public class CreateNodesWindow {
     private JCheckBox clientNodeErstellenCheckBox;
     private JFormattedTextField maxNodesFeld;
     private JFrame frame;
-    private ApplicationGUI gui;
 
     /**
      * Über dieses Fenster lassen sich beliebig viele Nodes, ein ClientNode und ein CoordinatorNode erstellen.
