@@ -23,7 +23,7 @@ public class CoordinatorNode extends DrasylNode {
     private int oldmaxnodes;
     private int range = 9998;
     private int clustersize = 3;
-    private int number = 1;
+    private int number = 0;
     private int dataBasesRecieved = 0;
     private List<Map<Integer, Map<String,String>>> listOfDatabases = new ArrayList<>();
     private boolean isOnline;
@@ -46,8 +46,8 @@ public class CoordinatorNode extends DrasylNode {
      */
     private synchronized void registerProcess(Message message)
     {
-        System.out.println("Node " + number + " hinzugefügt" + " (" + message.getSender() + ")");
         number++;
+        System.out.println("Node " + number + " hinzugefügt" + " (" + message.getSender() + ")");
         if(registerednodes.size() == maxnodes)
         {
             List<Settings> settingsList = createInitialSettings();
@@ -254,7 +254,7 @@ public class CoordinatorNode extends DrasylNode {
         if(event instanceof NodeOnlineEvent)
         {
             System.out.println("Ich bin: " + identity.getAddress().toString());
-            number = 1;
+            number = 0;
             registerednodes = new ArrayList<>();
             isOnline = true;
         }
