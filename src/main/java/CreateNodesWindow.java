@@ -3,7 +3,6 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
-import java.util.Map;
 
 public class CreateNodesWindow {
     private JButton okButton;
@@ -16,7 +15,6 @@ public class CreateNodesWindow {
     private JCheckBox clientNodeErstellenCheckBox;
     private JFormattedTextField maxNodesFeld;
     private JFrame frame;
-    private ApplicationGUI gui;
 
     /**
      * Über dieses Fenster lassen sich beliebig viele Nodes, ein ClientNode und ein CoordinatorNode erstellen.
@@ -50,7 +48,7 @@ public class CreateNodesWindow {
                     }
                     if (anzahl != Integer.MIN_VALUE && maxNodes != Integer.MIN_VALUE)
                     {
-                        gui.recieveCreateDialogResults(anzahl, coordinatorNodeErstellenCheckBox.isSelected(), true, maxNodes);
+                        gui.recieveCreateDialogResults(anzahl, true, clientNodeErstellenCheckBox.isSelected(), maxNodes);
                         frame.dispose();
                     }
                 }
@@ -58,7 +56,7 @@ public class CreateNodesWindow {
                 {
                     if (anzahl != Integer.MIN_VALUE)
                     {
-                        gui.recieveCreateDialogResults(anzahl, coordinatorNodeErstellenCheckBox.isSelected(), false, Integer.MIN_VALUE);
+                        gui.recieveCreateDialogResults(anzahl, false, clientNodeErstellenCheckBox.isSelected(), Integer.MIN_VALUE);
                         frame.dispose();
                     }
                 }
