@@ -41,7 +41,6 @@ public class CoordinatorNode extends DrasylNode {
         messageConfirmer = new MessageConfirmer(this);
     }
 
-
     /**
      * Nimmt Messages entgegen und registriert den Sender als Node. Wenn die festgelegte maximale Anzahl
      * an Nodes erreicht ist werden für diese Settings erstellt und entsprechend versendet
@@ -59,12 +58,15 @@ public class CoordinatorNode extends DrasylNode {
 
                 messageConfirmer.sendMessage(settings,
                     () -> {
-                        responseWaitMap.remove(settings.getRecipient());
-                        if(responseWaitMap.size() == 0)
-                        {
-                            notifyClients();
-                            initialSettings = false;
-                            System.out.println("Erfolg");
+                        synchronized (responseWaitMap) {
+                            System.out.println("settings: onSuccess!!!");
+                            responseWaitMap.remove(settings.getRecipient());
+                            if(responseWaitMap.size() == 0)
+                            {
+                                notifyClients();
+                                initialSettings = false;
+                                System.out.println("Erfolg");
+                            }
                         }
                     },
                     () -> System.out.println("settings: onError!!!")
