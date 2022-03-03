@@ -2,22 +2,21 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 public class CreateNodesWindow {
     private JButton okButton;
-    private JFormattedTextField formattedTextField1;
+    private JFormattedTextField anzahlNodesFeld;
     private JButton upButton;
     private JButton downButton;
     private JPanel innerPanel;
     private JPanel panel;
     private JCheckBox coordinatorNodeErstellenCheckBox;
     private JCheckBox clientNodeErstellenCheckBox;
+    private JFormattedTextField maxNodesFeld;
     private JFrame frame;
-    private int anzahl;
     private ApplicationGUI gui;
-    private boolean validResult = false;
 
     /**
      * Über dieses Fenster lassen sich beliebig viele Nodes, ein ClientNode und ein CoordinatorNode erstellen.
@@ -29,31 +28,64 @@ public class CreateNodesWindow {
         upButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                formattedTextField1.setText(Integer.toString(getIntegerFromField() + 1));
+                anzahlNodesFeld.setText(Integer.toString(getIntegerFromField(anzahlNodesFeld) + 1));
             }
         });
         downButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                formattedTextField1.setText(Integer.toString(getIntegerFromField() - 1));
+                anzahlNodesFeld.setText(Integer.toString(getIntegerFromField(anzahlNodesFeld) - 1));
             }
         });
         okButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                anzahl = getIntegerFromField();
-                if (validResult)
+                int anzahl = getIntegerFromField(anzahlNodesFeld);
+                if (coordinatorNodeErstellenCheckBox.isSelected()) {
+                    int maxNodes = getIntegerFromField(maxNodesFeld);
+
+                    if (!(maxNodes % 3 == 0)) {
+                        JOptionPane.showMessageDialog(frame, "Maximale Anzahl der Nodes muss ein vielfaches von 3 sein!");
+                        return;
+                    }
+                    if (anzahl != Integer.MIN_VALUE && maxNodes != Integer.MIN_VALUE)
+                    {
+                        gui.recieveCreateDialogResults(anzahl, coordinatorNodeErstellenCheckBox.isSelected(), true, maxNodes);
+                        frame.dispose();
+                    }
+                }
+                else
                 {
-                    gui.recieveCreateDialogResults(anzahl, coordinatorNodeErstellenCheckBox.isSelected(), clientNodeErstellenCheckBox.isSelected());
-                    frame.dispose();
+                    if (anzahl != Integer.MIN_VALUE)
+                    {
+                        gui.recieveCreateDialogResults(anzahl, coordinatorNodeErstellenCheckBox.isSelected(), false, Integer.MIN_VALUE);
+                        frame.dispose();
+                    }
+                }
+
+            }
+        });
+        coordinatorNodeErstellenCheckBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                if (coordinatorNodeErstellenCheckBox.isSelected())
+                {
+                    maxNodesFeld.setEnabled(true);
+                    maxNodesFeld.setText("9");
+                }
+                else
+                {
+                    maxNodesFeld.setEnabled(false);
+                    maxNodesFeld.setText("");
                 }
             }
         });
-        formattedTextField1.setText("0");
+        anzahlNodesFeld.setText("0");
         frame = new JFrame("Nodes erstellen");
         frame.setContentPane(panel);
-        frame.setSize(400, 200);
+        frame.setSize(400, 250);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        maxNodesFeld.setEnabled(false);
         try {
             frame.setIconImage(ImageIO.read(getClass().getClassLoader().getResourceAsStream("logo.png")));
         }
@@ -68,18 +100,17 @@ public class CreateNodesWindow {
      * Holt sich ein Integer aus dem Textfeld, wenn möglich, und setzt einen Boolean. Falls nicht, wird eine Fehlermeldung gezeigt.
      * @return das Integer aus dem Feld
      */
-    public int getIntegerFromField()
+    public int getIntegerFromField(JFormattedTextField field)
     {
         try
         {
-            int i =  Math.abs(Integer.parseInt(formattedTextField1.getText()));
-            validResult = true;
+            int i =  Math.abs(Integer.parseInt(field.getText()));
             return i;
         }
         catch (NumberFormatException e)
         {
             JOptionPane.showMessageDialog(frame, "Bitte gültige Nummer eingeben");
-            return 0;
+            return Integer.MIN_VALUE;
         }
     }
 }

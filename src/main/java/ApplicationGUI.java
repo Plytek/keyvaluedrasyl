@@ -10,7 +10,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
@@ -37,6 +36,7 @@ public class ApplicationGUI {
     private String coordinatorAddress;
     private CoordinatorNodeWindow corw;
     private CoordinatorAddressDialog cadrw;
+    private CoordinatorMaxNodesDialog cmaxd;
     private ApplicationGUI myself = this;
     private GUIController clientGUI;
     private ClientNode client;
@@ -73,7 +73,7 @@ public class ApplicationGUI {
                     int dialogButton = JOptionPane.YES_NO_OPTION;
                     int dialogResult = JOptionPane.showConfirmDialog(frame, "CoordinatorNode wurde noch nicht erstellt und es wurde keine Addresse angegeben. Soll einer erstellt werden?", "Kein CoordinatorNode", dialogButton);
                     if(dialogResult == 0) {
-                        createCoordinator();
+                        cmaxd = new CoordinatorMaxNodesDialog();
                     }
                     else {return;}
                 }
@@ -110,7 +110,7 @@ public class ApplicationGUI {
                     int dialogButton = JOptionPane.YES_NO_OPTION;
                     int dialogResult = JOptionPane.showConfirmDialog(frame, "CoordinatorNode wurde noch nicht erstellt. Soll einer erstellt werden?", "Kein CoordinatorNode", dialogButton);
                     if(dialogResult == 0) {
-                        createCoordinator();
+                        cmaxd = new CoordinatorMaxNodesDialog();
                     }
                     else
                     {
@@ -211,7 +211,7 @@ public class ApplicationGUI {
      * @param coord Soll ein CoordinatorNode erstellt werden?
      * @param client Soll ein ClientNode erstellt werden?
      */
-    public void recieveCreateDialogResults(int n, boolean coord, boolean client)
+    public void recieveCreateDialogResults(int n, boolean coord, boolean client, int maxNodes)
     {
         nodes = new ArrayList<>();
         DrasylConfig config;
@@ -229,7 +229,7 @@ public class ApplicationGUI {
         }
         if (coord)
         {
-            createCoordinator();
+            createCoordinator(maxNodes);
         }
         if(client)
         {
@@ -259,11 +259,12 @@ public class ApplicationGUI {
     /**
      * Erstellt einen CoordinatorNode und meldet diesen in der UI an.
      */
-    private void createCoordinator()
+    private void createCoordinator(int maxNodes)
     {
         try {
             coordinator = new CoordinatorNode();
             coordinatorAddress = coordinator.identity().getAddress().toString();
+            coordinator.setMaxnodes(maxNodes);
             setCoordinatorAddressInNodes();
             coordinator.start().toCompletableFuture().join();
             CompletableFuture.allOf();
@@ -370,6 +371,51 @@ public class ApplicationGUI {
 
     }
 
+    protected class CoordinatorMaxNodesDialog extends JDialog
+    {
+        private JFormattedTextField anzahlFeld;
+        private JButton ok;
+        private JButton abbrechen;
+        private JLabel label;
+
+        public CoordinatorMaxNodesDialog()
+        {
+            super(new JFrame("Maximale Anzahl an Nodes festlegen"), "Maximale Anzahl an Nodes festlegen");
+            label = new JLabel("Maximale Anzahl Nodes: ");
+            anzahlFeld = new JFormattedTextField();
+            ok = new JButton("Ok");
+            abbrechen = new JButton("Abbrechen");
+            ok.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent actionEvent) {
+                    try
+                    {
+                        createCoordinator(Integer.parseInt(anzahlFeld.getText()));
+                        dispose();
+                    }
+                    catch (NumberFormatException e)
+                    {
+                        JOptionPane.showMessageDialog(frame, "Bitte eine gültige Nummer eingeben");
+                    }
+                }
+            });
+            abbrechen.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent actionEvent) {
+                    dispose();
+                }
+            });
+            setLayout(new GridLayout(2, 2, 5, 5));
+            add(label);
+            add(anzahlFeld);
+            add(ok);
+            add(abbrechen);
+            pack();
+            setVisible(true);
+        }
+
+        }
+
     /**
      * Dieser Dialog erlaubt das Ändern der CoordinatorNode-Addresse.
      */
@@ -390,6 +436,12 @@ public class ApplicationGUI {
             ok.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent actionEvent) {
+                    String address = addressTextField.getText();
+                    if (!address.matches("[0-9a-f]{64}"))
+                    {
+                        JOptionPane.showMessageDialog(frame, "Bitte eine gültige Drasyl-Addresse eingeben");
+                        return;
+                    }
                     coordinatorAddress = addressTextField.getText();
                     setCoordinatorAddressInNodes();
                     dispose();

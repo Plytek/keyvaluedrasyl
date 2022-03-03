@@ -1,5 +1,7 @@
+import javax.crypto.MacSpi;
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Collections;
@@ -14,6 +16,7 @@ public class CoordinatorNodeWindow {
     private JButton zeigeMainNodesButton;
     private JButton zeigeResponseWaitMessagesButton;
     private JPanel panel;
+    private JButton setzeMaximaleAnzahlNodesButton;
     private CoordinatorNode node;
     private CoordinatorNodeInfoTableModel tableModel;
     private JFrame frame;
@@ -21,6 +24,7 @@ public class CoordinatorNodeWindow {
     private CoordinatorRegisteredNodesWindow regnw;
     private CoordinatorMainNodesWindow mainnw;
     private CoordinatorResponseWaitMessagesWindow rwmw;
+    private MaxNodesDialog dialog;
 
     /**
      * Dieses Fenster zeigt Informationen des CoordinatorNodes und bietet einige Optionen an.
@@ -57,6 +61,12 @@ public class CoordinatorNodeWindow {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 rwmw = new CoordinatorResponseWaitMessagesWindow(node);
+            }
+        });
+        setzeMaximaleAnzahlNodesButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                dialog = new MaxNodesDialog();
             }
         });
         tableModel = new CoordinatorNodeInfoTableModel();
@@ -114,6 +124,51 @@ public class CoordinatorNodeWindow {
         @Override
         public Object getValueAt(int i, int i1) {
             return values[i][i1];
+        }
+    }
+
+    protected class MaxNodesDialog extends JDialog
+    {
+        private JFormattedTextField anzahlFeld;
+        private JButton ok;
+        private JButton abbrechen;
+        private JLabel label;
+
+        public MaxNodesDialog()
+        {
+            super(new JFrame("Maximale Anzahl an Nodes festlegen"), "Maximale Anzahl an Nodes festlegen");
+            label = new JLabel("Maximale Anzahl Nodes: ");
+            anzahlFeld = new JFormattedTextField();
+            ok = new JButton("Ok");
+            abbrechen = new JButton("Abbrechen");
+            ok.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent actionEvent) {
+                    try
+                    {
+                        node.setMaxnodes(Integer.parseInt(anzahlFeld.getText()));
+                        dispose();
+                    }
+                    catch (NumberFormatException e)
+                    {
+                        JOptionPane.showMessageDialog(frame, "Bitte eine gültige Nummer eingeben");
+                    }
+                }
+            });
+            abbrechen.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent actionEvent) {
+                    dispose();
+                }
+            });
+            setLayout(new GridLayout(2, 2, 5, 5));
+            add(label);
+            add(anzahlFeld);
+            add(ok);
+            add(abbrechen);
+            pack();
+            setVisible(true);
+
         }
     }
 }
