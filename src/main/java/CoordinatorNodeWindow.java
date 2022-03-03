@@ -146,6 +146,7 @@ public class CoordinatorNodeWindow {
                 public void actionPerformed(ActionEvent actionEvent) {
                     try
                     {
+                        node.setOldmaxnodes(node.getMaxnodes());
                         node.setMaxnodes(Integer.parseInt(anzahlFeld.getText()));
                         dispose();
                     }
