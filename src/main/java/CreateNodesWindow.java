@@ -9,6 +9,7 @@ public class CreateNodesWindow {
     private JFormattedTextField anzahlNodesFeld;
     private JButton upButton;
     private JButton downButton;
+    private JPanel innerPanel;
     private JPanel panel;
     private JCheckBox coordinatorNodeErstellenCheckBox;
     private JCheckBox clientNodeErstellenCheckBox;
