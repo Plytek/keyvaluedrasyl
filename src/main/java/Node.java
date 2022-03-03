@@ -180,8 +180,8 @@ public class Node extends DrasylNode
 
                 ConsensData consensData = new ConsensData();
                 consensData.setClientRequest(clientRequest);
-                consensData.getClientResponses().add(clientResponse);
                 consensDataCollection.put(clientRequest.getToken(), consensData);
+                handleClientResponse(clientRequest.getToken(), clientResponse);
 
                 for(int i = 0; i < localCluster.size(); i++)
                 {
@@ -198,38 +198,7 @@ public class Node extends DrasylNode
                 clientRequestTimer.schedule(new TimerTask() {
                     @Override
                     public void run() {
-                         //Wenn das hier läuft, sind alle Antworten eingetroffen oder endgültig getimeoutet
-                        // -> Hier entscheiden
-                        if(consensDataCollection.containsKey(clientRequest.getToken()))
-                        {
-                            ClientResponse consensResponse = consensData.findConsens();
-
-                            if(consensResponse != null) {
-                                consensResponse.setRecipient(consensData.getClientRequest().getSender());
-                                returnRequest(consensResponse);
-                            } else {
-                                switch (clientRequest.getRequestType()){
-                                    case "create":
-                                        handleDelete(requesthash, clientRequest.getAffectedKey());
-                                        break;
-                                    case "delete":
-                                        handleCreate(requesthash, clientRequest.getAffectedKey(), clientResponse.getOldvalue());
-                                        break;
-                                    case "update":
-                                        if(clientResponse.getOldvalue() != null)
-                                        {
-                                            handleUpdate(requesthash, clientRequest.getAffectedKey(), clientResponse.getOldvalue());
-                                        }
-                                }
-                                ClientResponse failedConsensResponse = new ClientResponse();
-                                failedConsensResponse.setRecipient(consensData.getClientRequest().getSender());
-                                failedConsensResponse.setMessageType("clientresponse");
-                                failedConsensResponse.setResponse("Failed to reach Consensus!");
-                                returnRequest(failedConsensResponse);
-                            }
-                        }
-
-                        consensDataCollection.remove(clientRequest.getToken());
+                        handleClientResponse(clientRequest.getToken(), null);
                     }
                 }, 5000); // 5s delay
 
@@ -409,17 +378,50 @@ public class Node extends DrasylNode
     }
 
     // synchronized flag -> sind hier gleichzeitig nur einmal drin!
-    private synchronized void handleClientResponse(ClientResponse clientResponse) {
-        if(consensDataCollection.containsKey(clientResponse.getToken())) {
-            ConsensData consensData = consensDataCollection.get(clientResponse.getToken());
-            consensData.getClientResponses().add(clientResponse);
+    private synchronized void handleClientResponse(String token, ClientResponse clientResponse) {
+        boolean timeoutHappened = clientResponse == null;
+        // nur handeln falls Abstimmung noch nich beendet
+        if(consensDataCollection.containsKey(token)) {
+            ConsensData consensData = consensDataCollection.get(token);
+            ClientRequest clientRequest = consensData.getClientRequest();
+            if(clientResponse != null) consensData.getClientResponses().add(clientResponse);
 
+            // Gibt es schon Konsens?
             ClientResponse consensResponse = consensData.findConsens();
+
+            // Falls es einen Konsens gibt, den Konsens an Clienten schicken
             if(consensResponse != null)
             {
-                consensDataCollection.remove(clientResponse.getToken());
                 consensResponse.setRecipient(consensData.getClientRequest().getSender());
+
+                consensDataCollection.remove(token);
                 returnRequest(consensResponse);
+            }
+            // Falls es keinen Konsens gibt und (ein Timeout passiert ist oder schon alle Antworten da sind)
+            // Dann schicke "Failed Consens!" an Clienten
+            // Außerdem reverse MainNode-Entscheidung, die dann als einziges reversed werden muss
+            else if(timeoutHappened || (consensData.getClientResponses().size() >= 3)){
+                ClientResponse mainResponse = consensData.getClientResponses().get(0);
+                switch (clientRequest.getRequestType()){
+                    case "create":
+                        handleDelete(clientRequest.verteilerHash(), clientRequest.getAffectedKey());
+                        break;
+                    case "delete":
+                        handleCreate(clientRequest.verteilerHash(), clientRequest.getAffectedKey(), mainResponse.getOldvalue());
+                        break;
+                    case "update":
+                        if(mainResponse.getOldvalue() != null)
+                        {
+                            handleUpdate(clientRequest.verteilerHash(), clientRequest.getAffectedKey(), mainResponse.getOldvalue());
+                        }
+                }
+                ClientResponse failedConsensResponse = new ClientResponse();
+                failedConsensResponse.setRecipient(clientRequest.getSender());
+                failedConsensResponse.setMessageType("clientresponse");
+                failedConsensResponse.setResponse("Failed to reach Consensus!");
+
+                consensDataCollection.remove(token);
+                returnRequest(failedConsensResponse);
             }
         }
     }
@@ -509,7 +511,8 @@ public class Node extends DrasylNode
                     handleClientRequest((ClientRequest) message);
                     break;
                 case "clientresponse":
-                    handleClientResponse((ClientResponse) message);
+                    ClientResponse clientResponse = (ClientResponse)message;
+                    handleClientResponse(clientResponse.getToken(), clientResponse);
                     break;
                 default:
                     break;
