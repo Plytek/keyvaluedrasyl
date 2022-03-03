@@ -50,7 +50,7 @@ public class CreateNodesWindow {
                     }
                     if (anzahl != Integer.MIN_VALUE && maxNodes != Integer.MIN_VALUE)
                     {
-                        gui.recieveCreateDialogResults(anzahl, coordinatorNodeErstellenCheckBox.isSelected(), true, maxNodes);
+                        gui.recieveCreateDialogResults(anzahl, true, clientNodeErstellenCheckBox.isSelected(), maxNodes);
                         frame.dispose();
                     }
                 }
@@ -58,7 +58,7 @@ public class CreateNodesWindow {
                 {
                     if (anzahl != Integer.MIN_VALUE)
                     {
-                        gui.recieveCreateDialogResults(anzahl, coordinatorNodeErstellenCheckBox.isSelected(), false, Integer.MIN_VALUE);
+                        gui.recieveCreateDialogResults(anzahl, false, clientNodeErstellenCheckBox.isSelected(), Integer.MIN_VALUE);
                         frame.dispose();
                     }
                 }
